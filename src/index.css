@@ -1,0 +1,97 @@
+@import 'tailwindcss';
+
+@source '../index.html';
+@source '../admin.html';
+@source './**/*.{ts,tsx}';
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --bg: #070a0e;
+    --bg-elevated: #0d1118;
+    --surface: #111820;
+    --surface-hover: #161e2a;
+    --border: rgba(255, 255, 255, 0.07);
+    --border-strong: rgba(255, 255, 255, 0.12);
+    --text: #94a3b8;
+    --text-muted: #64748b;
+    --text-heading: #f1f5f9;
+    --accent: #38bdf8;
+    --accent-muted: rgba(56, 189, 248, 0.14);
+    --accent-border: rgba(56, 189, 248, 0.45);
+    --positive: #34d399;
+    --positive-dim: rgba(52, 211, 153, 0.12);
+    --ticker-bg: #0a0e14;
+    --shadow-lg: 0 24px 48px -12px rgba(0, 0, 0, 0.45);
+    --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f9;
+      --bg-elevated: #ffffff;
+      --surface: #ffffff;
+      --surface-hover: #f1f5f9;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text: #475569;
+      --text-muted: #64748b;
+      --text-heading: #0f172a;
+      --accent: #0284c7;
+      --accent-muted: rgba(2, 132, 199, 0.1);
+      --accent-border: rgba(2, 132, 199, 0.35);
+      --positive: #059669;
+      --positive-dim: rgba(5, 150, 105, 0.1);
+      --ticker-bg: #e8ecf2;
+      --shadow-lg: 0 20px 40px -12px rgba(15, 23, 42, 0.12);
+    }
+  }
+
+  html {
+    font-family: var(--font-sans);
+    color: var(--text);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100svh;
+    background:
+      radial-gradient(ellipse 100% 80% at 50% -30%, color-mix(in srgb, var(--accent) 16%, transparent), transparent),
+      var(--bg);
+  }
+
+  #root {
+    min-height: 100svh;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums lining-nums;
+    font-family: var(--font-mono);
+  }
+}
+
+@layer utilities {
+  @keyframes ticker-scroll {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  .animate-ticker {
+    animation: ticker-scroll 32s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-ticker {
+      animation: none;
+    }
+  }
+}

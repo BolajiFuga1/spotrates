@@ -1,0 +1,23 @@
+# Deploy on https://render.com (free tier).
+# If this file lives at your Git repo root, use Blueprint. If the repo root is the parent
+# folder (e.g. "Curso Ai"), create the service manually and set Root Directory to forex-website.
+# After deploy: open your URL, then /admin.html to publish rates.
+services:
+  - type: web
+    name: spotrates
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # HTTPS site + httpOnly cookies — set when you enable admin login below.
+      - key: COOKIE_SECURE
+        value: "1"
+      # Strong random string for admin session signing (change in dashboard).
+      - key: SESSION_SECRET
+        generateValue: true
+      # Set a password in the Render dashboard, then enable:
+      # SPOTRATES_ADMIN_AUTH=1
+      # Without auth, anyone can change rates via the admin API — not recommended public.
