@@ -1,7 +1,10 @@
 const CBN_EXCHANGE_JSON = 'https://www.cbn.gov.ng/api/GetAllExchangeRates'
 const CBN_RATES_PAGE = 'https://www.cbn.gov.ng/rates/ExchRateByCurrency.html'
 
-/** Alternate path `GET /api/cbn-official-usd` (same handler as `api/public/cbn-official-usd.js`). */
+/**
+ * Vercel serverless: same JSON as Express `GET /api/public/cbn-official-usd`.
+ * Also reachable as `GET /api/cbn-official-usd` for simpler routing.
+ */
 export default async function handler(req, res) {
   if (req.method && req.method !== 'GET') {
     res.setHeader('Allow', 'GET')

@@ -20,25 +20,36 @@ type CbnApiOk = {
 
 type CbnApiErr = { ok: false; error?: string }
 
+const CBN_PROXY_PATHS = ['/api/public/cbn-official-usd', '/api/cbn-official-usd'] as const
+
+function joinApiBase(base: string, path: string): string {
+  if (!base) return path
+  return `${base.replace(/\/$/, '')}${path.startsWith('/') ? path : `/${path}`}`
+}
+
 /** Latest CBN published US DOLLAR (₦ per $1) via our API proxy (avoids browser CORS). */
 export async function fetchCbnOfficialUsdNgn(signal?: AbortSignal): Promise<CbnOfficialQuote | null> {
-  const base = publicRatesBaseUrl()
-  if (base === null) return null
-  const url = base ? `${base}/api/public/cbn-official-usd` : '/api/public/cbn-official-usd'
-  try {
-    const res = await fetch(url, { signal, headers: { accept: 'application/json' } })
-    if (!res.ok) return null
-    const data = (await res.json()) as CbnApiOk | CbnApiErr
-    if (!data || data.ok !== true) return null
-    return {
-      ratedate: data.ratedate,
-      buying: data.buying,
-      central: data.central,
-      selling: data.selling,
-      sourceUrl: data.sourceUrl,
-      fetchedAtMs: Date.now(),
+  const apiBase = publicRatesBaseUrl()
+  if (apiBase === null) return null
+
+  for (const path of CBN_PROXY_PATHS) {
+    const url = joinApiBase(apiBase, path)
+    try {
+      const res = await fetch(url, { signal, headers: { accept: 'application/json' } })
+      if (!res.ok) continue
+      const data = (await res.json()) as CbnApiOk | CbnApiErr
+      if (!data || data.ok !== true) continue
+      return {
+        ratedate: data.ratedate,
+        buying: data.buying,
+        central: data.central,
+        selling: data.selling,
+        sourceUrl: data.sourceUrl,
+        fetchedAtMs: Date.now(),
+      }
+    } catch {
+      continue
     }
-  } catch {
-    return null
   }
+  return null
 }

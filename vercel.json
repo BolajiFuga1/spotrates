@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/api/public/cbn-official-usd",
+      "destination": "/api/cbn-official-usd"
+    }
+  ],
+  "functions": {
+    "api/cbn-official-usd.js": {
+      "maxDuration": 30
+    }
+  }
+}
