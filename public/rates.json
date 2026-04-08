@@ -1,0 +1,10 @@
+{
+  "active": true,
+  "base": "USD",
+  "rates": {
+    "NGN": 1550,
+    "GBP": 0.79,
+    "EUR": 0.92
+  },
+  "updatedAtMs": 1740000000000
+}

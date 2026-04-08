@@ -8,13 +8,31 @@ function formatNgn(n: number) {
 }
 
 export function CbnOfficialBanner() {
-  const { quote, error, loading } = useCbnOfficialRate()
+  const { quote, error, loading, staticPages, cbnRatesPageUrl } = useCbnOfficialRate()
 
   return (
     <div className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-center md:px-6">
       <p className="text-xs leading-relaxed text-[var(--text)] md:text-sm">
         <span className="font-semibold text-[var(--text-heading)]">CBN official US dollar</span>
-        {loading && !quote ? (
+        {staticPages ? (
+          <>
+            <span className="mx-2 hidden text-[var(--text-muted)] sm:inline" aria-hidden>
+              ·
+            </span>
+            <span className="ml-2 text-[var(--text-muted)]">
+              Live figures load on the full app (with API). On this static site, see the{' '}
+              <a
+                href={cbnRatesPageUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-[var(--accent)] underline-offset-2 hover:underline"
+              >
+                CBN exchange rates page
+              </a>
+              .
+            </span>
+          </>
+        ) : loading && !quote ? (
           <span className="ml-2 text-[var(--text-muted)]">Loading…</span>
         ) : quote ? (
           <>

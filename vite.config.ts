@@ -19,9 +19,22 @@ const apiProxy = {
   },
 } as const
 
+// GitHub Pages project site: build with VITE_BASE_PATH=/spotrates/ (repo name, slashes optional).
+const rawBase = (process.env.VITE_BASE_PATH && process.env.VITE_BASE_PATH.trim()) || './'
+const viteBase =
+  rawBase === './' || rawBase === '.'
+    ? './'
+    : rawBase.startsWith('/')
+      ? rawBase.endsWith('/')
+        ? rawBase
+        : `${rawBase}/`
+      : rawBase.endsWith('/')
+        ? `/${rawBase}`
+        : `/${rawBase}/`
+
 // https://vite.dev/config/
 export default defineConfig({
-  base: './',
+  base: viteBase,
   plugins: [react()],
   server: {
     proxy: { ...apiProxy },
