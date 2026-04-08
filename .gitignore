@@ -9,6 +9,8 @@ lerna-debug.log*
 
 node_modules
 .env
+.env.development.local
+.env*.local
 server/local-admin-password.txt
 dist
 dist-ssr
