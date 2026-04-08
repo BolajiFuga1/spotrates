@@ -8,6 +8,23 @@ type RatesRes = {
   updatedAtMs: number | null
 }
 
+function messageFromApiError(data: unknown, status: number): string {
+  if (!data || typeof data !== 'object') {
+    return `Request failed (${status})`
+  }
+  const o = data as { error?: unknown; message?: unknown }
+  const raw = o.error ?? o.message
+  if (typeof raw === 'string') return raw
+  if (raw != null && typeof raw === 'object' && 'message' in raw && typeof (raw as { message: unknown }).message === 'string') {
+    return (raw as { message: string }).message
+  }
+  try {
+    return JSON.stringify(raw)
+  } catch {
+    return `Request failed (${status})`
+  }
+}
+
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     ...init,
@@ -20,7 +37,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   })
   const data = (await res.json().catch(() => ({}))) as T & { error?: string }
   if (!res.ok) {
-    throw new Error((data as { error?: string }).error || `Request failed (${res.status})`)
+    throw new Error(messageFromApiError(data, res.status))
   }
   return data as T
 }
@@ -143,7 +160,7 @@ export function AdminApp() {
             </p>
           </div>
           <a
-            href="./index.html"
+            href="/"
             className="inline-flex items-center rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] px-4 py-2 text-sm font-semibold text-[var(--accent)]"
           >
             View site
@@ -155,9 +172,10 @@ export function AdminApp() {
             <p className="font-semibold">Could not reach the API</p>
             <p className="mt-1 text-amber-200/80">{bootError}</p>
             <p className="mt-2 text-xs text-amber-200/70">
-              Run <span className="font-mono">npm run dev:full</span> so Vite proxies <span className="font-mono">/api</span>{' '}
-              to the API. If you see “Unauthorized”, the API has password mode on — unset{' '}
-              <span className="font-mono">SPOTRATES_ADMIN_AUTH</span> or remove it from <span className="font-mono">.env</span>.
+              Local: run <span className="font-mono">npm run dev:full</span> so Vite proxies <span className="font-mono">/api</span>.
+              Vercel: connect <strong>Redis (Upstash)</strong> under Storage and redeploy. Saving rates returns 503 until Redis is
+              linked. If you see “Unauthorized”, turn off <span className="font-mono">SPOTRATES_ADMIN_AUTH</span> or log in via
+              the API.
             </p>
             <button
               type="button"
