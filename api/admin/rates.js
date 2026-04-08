@@ -1,4 +1,5 @@
 import {
+  disconnectRedis,
   fromUsdBase,
   getRedis,
   readManualStore,
@@ -43,58 +44,62 @@ export default async function handler(req, res) {
 
   const redis = getRedis()
 
-  if (req.method === 'GET') {
-    const s = await readManualStore(redis)
-    if (!s.rates?.NGN) {
+  try {
+    if (req.method === 'GET') {
+      const s = await readManualStore(redis)
+      if (!s.rates?.NGN) {
+        return res.status(200).json({
+          active: s.active,
+          ngnPerUsd: '',
+          ngnPerGbp: '',
+          ngnPerEur: '',
+          updatedAtMs: s.updatedAtMs,
+        })
+      }
+      const d = fromUsdBase(s.rates)
       return res.status(200).json({
         active: s.active,
-        ngnPerUsd: '',
-        ngnPerGbp: '',
-        ngnPerEur: '',
+        ngnPerUsd: d.ngnPerUsd,
+        ngnPerGbp: d.ngnPerGbp,
+        ngnPerEur: d.ngnPerEur,
         updatedAtMs: s.updatedAtMs,
       })
     }
-    const d = fromUsdBase(s.rates)
-    return res.status(200).json({
-      active: s.active,
-      ngnPerUsd: d.ngnPerUsd,
-      ngnPerGbp: d.ngnPerGbp,
-      ngnPerEur: d.ngnPerEur,
-      updatedAtMs: s.updatedAtMs,
-    })
-  }
 
-  if (!redis) {
-    return res.status(503).json({
-      ok: false,
-      error:
-        'Redis is not configured for this deployment. In Vercel: open this project → Storage → Create database → Redis (Upstash) → connect to this project. Then Settings → Environment Variables: ensure UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (or KV_REST_API_URL and KV_REST_API_TOKEN) exist for Production. Redeploy the project, then try Save again.',
-    })
-  }
+    if (!redis) {
+      return res.status(503).json({
+        ok: false,
+        error:
+          'Redis is not configured for this deployment. In Vercel: Storage → connect Redis to this project, then in Settings → Environment Variables ensure Production has UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (or KV_REST_*), or REDIS_URL from the Vercel Redis quickstart. Redeploy, then try Save again.',
+      })
+    }
 
-  const body = readJsonBody(req)
+    const body = readJsonBody(req)
 
-  if (body.active === false) {
-    const prev = await readManualStore(redis)
-    await writeManualStore(redis, {
-      active: false,
-      rates: prev.rates,
-      updatedAtMs: Date.now(),
-    })
-    return res.status(200).json({ ok: true })
-  }
+    if (body.active === false) {
+      const prev = await readManualStore(redis)
+      await writeManualStore(redis, {
+        active: false,
+        rates: prev.rates,
+        updatedAtMs: Date.now(),
+      })
+      return res.status(200).json({ ok: true })
+    }
 
-  const u = Number(body.ngnPerUsd)
-  const g = Number(body.ngnPerGbp)
-  const e = Number(body.ngnPerEur)
-  if (![u, g, e].every((n) => Number.isFinite(n) && n > 0)) {
-    return res.status(400).json({
-      ok: false,
-      error: 'Enter positive numbers: naira per US dollar, per pound, and per euro.',
-    })
+    const u = Number(body.ngnPerUsd)
+    const g = Number(body.ngnPerGbp)
+    const e = Number(body.ngnPerEur)
+    if (![u, g, e].every((n) => Number.isFinite(n) && n > 0)) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Enter positive numbers: naira per US dollar, per pound, and per euro.',
+      })
+    }
+    const rates = toUsdBase(u, g, e)
+    const updatedAtMs = Date.now()
+    await writeManualStore(redis, { active: true, rates, updatedAtMs })
+    return res.status(200).json({ ok: true, rates, updatedAtMs })
+  } finally {
+    await disconnectRedis(redis)
   }
-  const rates = toUsdBase(u, g, e)
-  const updatedAtMs = Date.now()
-  await writeManualStore(redis, { active: true, rates, updatedAtMs })
-  return res.status(200).json({ ok: true, rates, updatedAtMs })
 }

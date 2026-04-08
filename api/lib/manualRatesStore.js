@@ -1,14 +1,59 @@
 import { Redis } from '@upstash/redis'
+import { createClient } from 'redis'
 
 export const MANUAL_RATES_KEY = 'spotrates:manual_v1'
 
-/** @returns {Redis | null} */
+/**
+ * Vercel Storage → Redis quickstart often exposes only `REDIS_URL` (TCP). This app prefers Upstash REST
+ * (`UPSTASH_*` / `KV_REST_*`) but falls back to TCP when only `REDIS_URL` is set.
+ * @param {string} url
+ */
+function createTcpRedis(url) {
+  const client = createClient({ url })
+  let connectPromise = null
+  async function ensureConnected() {
+    if (client.isOpen) return
+    if (!connectPromise) connectPromise = client.connect()
+    await connectPromise
+  }
+  return {
+    async get(key) {
+      await ensureConnected()
+      const raw = await client.get(key)
+      if (raw == null) return null
+      try {
+        return JSON.parse(raw)
+      } catch {
+        return raw
+      }
+    },
+    async set(key, value) {
+      await ensureConnected()
+      const payload = typeof value === 'string' ? value : JSON.stringify(value)
+      await client.set(key, payload)
+    },
+    async disconnect() {
+      if (client.isOpen) await client.quit()
+    },
+  }
+}
+
+/** @returns {Redis | ReturnType<typeof createTcpRedis> | null} */
 export function getRedis() {
-  // Vercel + Upstash: UPSTASH_* — legacy Vercel KV migrations often expose KV_REST_* instead.
-  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL
+  const restUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN
-  if (!url || !token) return null
-  return new Redis({ url, token })
+  if (restUrl && token) return new Redis({ url: restUrl, token })
+  const redisUrl = process.env.REDIS_URL
+  if (redisUrl) return createTcpRedis(redisUrl)
+  return null
+}
+
+/** Close TCP Redis (no-op for Upstash REST client). */
+export async function disconnectRedis(redis) {
+  if (redis instanceof Redis) return
+  if (redis && typeof redis.disconnect === 'function') {
+    await redis.disconnect().catch(() => {})
+  }
 }
 
 export function toUsdBase(ngnPerUsd, ngnPerGbp, ngnPerEur) {
