@@ -68,7 +68,7 @@ export default async function handler(req, res) {
     return res.status(503).json({
       ok: false,
       error:
-        'Redis is not configured. In Vercel: Storage → Marketplace → Redis (Upstash), create a database, link it to this project, then redeploy.',
+        'Redis is not configured for this deployment. In Vercel: open this project → Storage → Create database → Redis (Upstash) → connect to this project. Then Settings → Environment Variables: ensure UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (or KV_REST_API_URL and KV_REST_API_TOKEN) exist for Production. Redeploy the project, then try Save again.',
     })
   }
 
