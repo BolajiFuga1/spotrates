@@ -149,9 +149,20 @@ export function AdminApp() {
     <div className="min-h-screen bg-[var(--bg)] px-4 py-10 text-[var(--text)] md:px-6">
       <div className="mx-auto max-w-2xl">
         <header className="flex flex-col gap-4 border-b border-[var(--border)] pb-6 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="font-mono text-xs font-bold uppercase tracking-widest text-[var(--accent)]">Admin</div>
-            <h1 className="mt-1 text-2xl font-bold text-[var(--text-heading)]">Set rates manually</h1>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <img
+                src="/elloydsfx-logo.png"
+                alt="E-lloydsFX"
+                className="h-8 w-auto max-w-[180px] object-contain object-left"
+                width={180}
+                height={36}
+              />
+              <span className="rounded-md border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-widest text-[var(--accent)]">
+                Admin
+              </span>
+            </div>
+            <h1 className="mt-3 text-2xl font-bold text-[var(--text-heading)]">Set rates manually</h1>
             <p className="mt-2 max-w-xl text-sm text-[var(--text-muted)]">
               Type how many <strong className="text-[var(--text)]">naira (₦)</strong> equal{' '}
               <strong className="text-[var(--text)]">one US dollar</strong>, <strong className="text-[var(--text)]">one British pound</strong>, and{' '}

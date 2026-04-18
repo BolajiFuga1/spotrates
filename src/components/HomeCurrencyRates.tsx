@@ -11,7 +11,7 @@ const cards = [
     code: 'USD',
     name: 'US Dollar',
     flag: '🇺🇸',
-    accent: 'from-sky-500/20 to-transparent',
+    accent: 'from-brand-orange/22 to-transparent',
   },
   {
     code: 'NGN',
@@ -23,13 +23,13 @@ const cards = [
     code: 'GBP',
     name: 'British Pound',
     flag: '🇬🇧',
-    accent: 'from-violet-500/20 to-transparent',
+    accent: 'from-brand-navy/28 to-transparent',
   },
   {
     code: 'EUR',
     name: 'Euro',
     flag: '🇪🇺',
-    accent: 'from-amber-500/15 to-transparent',
+    accent: 'from-brand-navy/18 to-transparent',
   },
 ] as const
 

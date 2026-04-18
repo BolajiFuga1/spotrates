@@ -1,5 +1,6 @@
 import { CbnOfficialBanner } from './components/CbnOfficialBanner'
 import { Chatbot } from './components/Chatbot'
+import { ElloydsServices } from './components/ElloydsServices'
 import { HomeCurrencyRates } from './components/HomeCurrencyRates'
 import { RatesTable, type RateRow } from './components/RatesTable'
 import { MarketNewsFeed } from './components/MarketNewsFeed'
@@ -128,12 +129,16 @@ function App() {
 
       <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_88%,transparent)] backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-6">
-          <a href="#home" className="flex items-center gap-3 text-left">
-            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-[var(--accent-border)] bg-[var(--accent-muted)] font-mono text-sm font-bold text-[var(--accent)]">
-              FX
-            </div>
-            <div>
-              <div className="text-base font-bold tracking-tight text-[var(--text-heading)]">SpotRates</div>
+          <a href="#home" className="flex min-w-0 items-center gap-3 text-left">
+            <img
+              src="/elloydsfx-logo.png"
+              alt="E-lloydsFX"
+              className="h-9 w-auto max-w-[min(200px,42vw)] shrink-0 object-contain object-left md:h-10"
+              width={200}
+              height={40}
+            />
+            <div className="min-w-0 border-l border-[var(--border)] pl-3">
+              <div className="text-base font-bold tracking-tight text-[var(--text-heading)]">E-lloydsFX</div>
               <div className="text-xs text-[var(--text-muted)]">USD · NGN · GBP · EUR</div>
             </div>
           </a>
@@ -364,56 +369,45 @@ function App() {
           </div>
 
           <div id="services" className="mt-14 scroll-mt-28">
-            <h2 className="text-lg font-bold text-[var(--text-heading)]">Services</h2>
+            <h2 className="text-lg font-bold text-[var(--text-heading)]">Our services</h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--text)]">
-              Everything on SpotRates is built around clear, comparable mid-market numbers — whether you are budgeting,
-              sending money, or teaching FX basics.
+              <strong className="text-[var(--text-heading)]">E-lloydsFX</strong> offers the FX and remittance services below.
+              This site also publishes indicative rates (USD, GBP, EUR, NGN) for quick reference alongside our desk services.
             </p>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {(
-                [
-                  {
-                    t: 'Live rate board',
-                    d: 'Dollar, pound, and euro vs naira on one screen, refreshed every minute with a full watchlist table.',
-                    href: '#vs-naira',
-                  },
-                  {
-                    t: 'Currency converter',
-                    d: 'Convert between USD, EUR, GBP, and NGN using the same snapshot as the rest of the page.',
-                    href: '#converter',
-                  },
-                  {
-                    t: 'FX assistant',
-                    d: 'Quick answers on pairs and refresh timing — open the chat bubble anytime.',
-                    href: '#converter',
-                  },
-                  {
-                    t: 'Nigeria FX feed',
-                    d: 'Naira-focused context—CBN vs parallel awareness, remittances, SMEs—plus pair watch when mids move vs your last visit.',
-                    href: '#news',
-                  },
-                  {
-                    t: 'Geo-smart defaults',
-                    d: 'Converter currencies default from your region when possible, without locking you in.',
-                    href: '#converter',
-                  },
-                  {
-                    t: 'Transparency',
-                    d: 'Source, methodology, and disclaimers spelled out — no hidden spreads on our numbers.',
-                    href: '#disclosure',
-                  },
-                ] as const
-              ).map((s) => (
-                <a
-                  key={s.t}
-                  href={s.href}
-                  className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 transition hover:border-[var(--accent-border)] hover:bg-[var(--surface-hover)]"
-                >
-                  <h3 className="text-sm font-bold text-[var(--text-heading)]">{s.t}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-[var(--text)]">{s.d}</p>
-                  <span className="mt-3 inline-block text-xs font-semibold text-[var(--accent)]">Learn more →</span>
-                </a>
-              ))}
+            <ElloydsServices />
+            <div className="mt-10">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-muted)]">On this website</h3>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {(
+                  [
+                    {
+                      t: 'Live rate board',
+                      d: 'Dollar, pound, and euro vs naira on one screen, with a full watchlist table.',
+                      href: '#vs-naira',
+                    },
+                    {
+                      t: 'Currency converter',
+                      d: 'Convert between USD, EUR, GBP, and NGN using the same snapshot as the rest of the page.',
+                      href: '#converter',
+                    },
+                    {
+                      t: 'Nigeria FX feed',
+                      d: 'Naira-focused context, remittances, and SMEs — plus pair watch when mids move.',
+                      href: '#news',
+                    },
+                  ] as const
+                ).map((s) => (
+                  <a
+                    key={s.t}
+                    href={s.href}
+                    className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 transition hover:border-[var(--accent-border)] hover:bg-[var(--surface-hover)]"
+                  >
+                    <h4 className="text-sm font-bold text-[var(--text-heading)]">{s.t}</h4>
+                    <p className="mt-2 text-sm leading-relaxed text-[var(--text)]">{s.d}</p>
+                    <span className="mt-3 inline-block text-xs font-semibold text-[var(--accent)]">Open →</span>
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -423,8 +417,8 @@ function App() {
               <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
                 <h3 className="text-sm font-semibold text-[var(--text-heading)]">Who we are</h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--text)]">
-                  SpotRates is an FX board for USD, GBP, EUR, and NGN with one pipeline — admin-published rates only —
-                  so the hero cards, converter, and watchlist always agree.
+                  E-lloydsFX is an FX board for USD, GBP, EUR, and NGN with one pipeline — admin-published rates only — so
+                  the hero cards, converter, and watchlist always agree.
                 </p>
               </div>
               <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
@@ -493,13 +487,17 @@ function App() {
         <div className="mx-auto max-w-6xl px-4 md:px-6">
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
             <div className="flex items-start gap-3">
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[var(--accent-border)] bg-[var(--accent-muted)] font-mono text-xs font-bold text-[var(--accent)]">
-                FX
-              </div>
-              <div>
-                <div className="text-sm font-bold text-[var(--text-heading)]">SpotRates</div>
+              <img
+                src="/elloydsfx-logo.png"
+                alt="E-lloydsFX"
+                className="h-8 w-auto max-w-[160px] shrink-0 object-contain object-left"
+                width={160}
+                height={32}
+              />
+              <div className="min-w-0">
+                <div className="text-sm font-bold text-[var(--text-heading)]">E-lloydsFX</div>
                 <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
-                  Admin-published USD-based FX board for NGN, USD, GBP, and EUR.
+                  Admin-published USD-based FX board for NGN, USD, GBP, and EUR — indicative mids for reference only.
                 </p>
               </div>
             </div>
@@ -527,7 +525,7 @@ function App() {
                   </a>
                 ))}
                 <a href="#live-rates" className="text-[var(--text)] hover:text-[var(--text-heading)]">
-                  Spot rates grid
+                  FX rates grid
                 </a>
                 <a href="./admin.html" className="text-[var(--text)] hover:text-[var(--text-heading)]">
                   Admin dashboard
@@ -537,7 +535,7 @@ function App() {
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Location</h3>
               <address className="mt-3 not-italic text-sm leading-relaxed text-[var(--text)]">
-                SpotRates (Demo)
+                E-lloydsFX (Demo)
                 <br />
                 12 Admiralty Way, Lekki Phase I
                 <br />
@@ -547,7 +545,7 @@ function App() {
             </div>
           </div>
           <p className="mt-10 border-t border-[var(--border)] pt-6 text-xs text-[var(--text-muted)]">
-            © {new Date().getFullYear()} SpotRates demo · Not financial advice · Rates are indicative only
+            © {new Date().getFullYear()} E-lloydsFX · Not financial advice · Rates are indicative only
           </p>
         </div>
       </footer>

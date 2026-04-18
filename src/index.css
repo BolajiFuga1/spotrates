@@ -5,24 +5,27 @@
 @source './**/*.{ts,tsx}';
 
 @layer base {
+  /* E-lloydsFX brand: navy #143061, accent orange #E86E25 */
   :root {
+    --brand-navy: #143061;
+    --brand-orange: #e86e25;
     color-scheme: dark;
-    --bg: #070a0e;
-    --bg-elevated: #0d1118;
-    --surface: #111820;
-    --surface-hover: #161e2a;
-    --border: rgba(255, 255, 255, 0.07);
-    --border-strong: rgba(255, 255, 255, 0.12);
+    --bg: #0a101f;
+    --bg-elevated: #0f1829;
+    --surface: #131d32;
+    --surface-hover: #1a2740;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.14);
     --text: #94a3b8;
     --text-muted: #64748b;
-    --text-heading: #f1f5f9;
-    --accent: #38bdf8;
-    --accent-muted: rgba(56, 189, 248, 0.14);
-    --accent-border: rgba(56, 189, 248, 0.45);
+    --text-heading: #e8eef7;
+    --accent: var(--brand-orange);
+    --accent-muted: rgba(232, 110, 37, 0.16);
+    --accent-border: rgba(232, 110, 37, 0.5);
     --positive: #34d399;
     --positive-dim: rgba(52, 211, 153, 0.12);
-    --ticker-bg: #0a0e14;
-    --shadow-lg: 0 24px 48px -12px rgba(0, 0, 0, 0.45);
+    --ticker-bg: #081426;
+    --shadow-lg: 0 24px 48px -12px rgba(0, 0, 0, 0.5);
     --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, monospace;
   }
@@ -30,22 +33,22 @@
   @media (prefers-color-scheme: light) {
     :root {
       color-scheme: light;
-      --bg: #f4f6f9;
+      --bg: #f4f6fa;
       --bg-elevated: #ffffff;
       --surface: #ffffff;
-      --surface-hover: #f1f5f9;
-      --border: #e2e8f0;
-      --border-strong: #cbd5e1;
+      --surface-hover: #eef2f7;
+      --border: #dce3ed;
+      --border-strong: #c5cedd;
       --text: #475569;
       --text-muted: #64748b;
-      --text-heading: #0f172a;
-      --accent: #0284c7;
-      --accent-muted: rgba(2, 132, 199, 0.1);
-      --accent-border: rgba(2, 132, 199, 0.35);
+      --text-heading: #143061;
+      --accent: var(--brand-orange);
+      --accent-muted: rgba(232, 110, 37, 0.12);
+      --accent-border: rgba(232, 110, 37, 0.42);
       --positive: #059669;
       --positive-dim: rgba(5, 150, 105, 0.1);
-      --ticker-bg: #e8ecf2;
-      --shadow-lg: 0 20px 40px -12px rgba(15, 23, 42, 0.12);
+      --ticker-bg: #e8ecf4;
+      --shadow-lg: 0 20px 40px -12px rgba(20, 48, 97, 0.12);
     }
   }
 
@@ -61,7 +64,12 @@
     margin: 0;
     min-height: 100svh;
     background:
-      radial-gradient(ellipse 100% 80% at 50% -30%, color-mix(in srgb, var(--accent) 16%, transparent), transparent),
+      radial-gradient(
+        ellipse 100% 80% at 50% -28%,
+        color-mix(in srgb, var(--brand-navy) 42%, transparent) 0%,
+        color-mix(in srgb, var(--accent) 12%, transparent) 45%,
+        transparent 72%
+      ),
       var(--bg);
   }
 

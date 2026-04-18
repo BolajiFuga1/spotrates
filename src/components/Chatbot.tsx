@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { formatNumber, type FeaturedRates } from '../lib/fx'
+import { makeBotReply } from '../lib/chatbotReplies'
+import type { FeaturedRates } from '../lib/fx'
 
 type Msg = { role: 'bot' | 'user'; text: string }
 
@@ -10,71 +11,13 @@ function nowTime() {
   }).format(new Date())
 }
 
-function makeBotReply(
-  inputRaw: string,
-  rates: FeaturedRates | null,
-  ratesSourceLine: string | null | undefined,
-) {
-  const input = inputRaw.trim().toLowerCase()
-  const hasRates = !!rates
-
-  if (!input) return "Type a question and I'll help."
-
-  if (/(hello|hi|hey|good\s*(morning|afternoon|evening))/.test(input)) {
-    return 'Hi! Ask me about USD, GBP, or EUR vs NGN, or when rates update.'
-  }
-
-  if (/(update|refresh|how\s*often)/.test(input)) {
-    return 'Rates auto-refresh every 60 seconds. You can also hit “Refresh”.'
-  }
-
-  if (/(source|where|api)/.test(input)) {
-    return (
-      ratesSourceLine?.trim() ||
-      'Rates are loaded only from the admin dashboard — publish from admin.html to update what visitors see.'
-    )
-  }
-
-  if (/(usd.*ngn|dollar.*naira|naira.*dollar)/.test(input)) {
-    return hasRates
-      ? `Right now, 1 USD ≈ ${formatNumber(rates!.usdToNgn, 6)} NGN.`
-      : "I'm still loading rates—try again in a moment."
-  }
-
-  if (/(gbp.*ngn|pound.*naira|naira.*pound)/.test(input)) {
-    return hasRates
-      ? `Right now, 1 GBP ≈ ${formatNumber(rates!.gbpToNgn, 6)} NGN.`
-      : "I'm still loading rates—try again in a moment."
-  }
-
-  if (/(usd.*gbp|dollar.*pound|pound.*dollar)/.test(input)) {
-    return hasRates
-      ? `Right now, 1 USD ≈ ${formatNumber(rates!.usdToGbp, 6)} GBP.`
-      : "I'm still loading rates—try again in a moment."
-  }
-
-  if (/(eur.*ngn|euro.*naira|naira.*euro)/.test(input)) {
-    return hasRates
-      ? `Right now, 1 EUR ≈ ${formatNumber(rates!.eurToNgn, 6)} NGN.`
-      : "I'm still loading rates—try again in a moment."
-  }
-
-  if (/(usd.*eur|dollar.*euro|euro.*dollar)/.test(input)) {
-    return hasRates
-      ? `Right now, 1 USD ≈ ${formatNumber(rates!.usdToEur, 6)} EUR.`
-      : "I'm still loading rates—try again in a moment."
-  }
-
-  return 'I can help with: USD/NGN, GBP/NGN, EUR/NGN, USD/GBP, USD/EUR, refresh frequency, and data source.'
-}
-
 export function Chatbot(props: { rates: FeaturedRates | null; ratesSourceLine?: string | null }) {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState('')
   const [msgs, setMsgs] = useState<Msg[]>(() => [
     {
       role: 'bot',
-      text: `Hi! I'm your FX assistant (${nowTime()}). Ask about dollar, pound, or euro vs naira, or updates.`,
+      text: `Hi! I'm your E-lloydsFX assistant (${nowTime()}). Try “help”, “USD to naira”, or “PTA”.`,
     },
   ])
 
@@ -97,11 +40,9 @@ export function Chatbot(props: { rates: FeaturedRates | null; ratesSourceLine?: 
     const text = draft.trim()
     if (!text) return
     setDraft('')
-    setMsgs((m) => [...m, { role: 'user', text }])
     const reply = makeBotReply(text, props.rates, props.ratesSourceLine)
-    window.setTimeout(() => {
-      setMsgs((m) => [...m, { role: 'bot', text: reply }])
-    }, 250)
+    // Single state update so user + bot messages always stay in sync (avoids lost replies under fast input).
+    setMsgs((m) => [...m, { role: 'user', text }, { role: 'bot', text: reply }])
   }
 
   return (
@@ -151,7 +92,10 @@ export function Chatbot(props: { rates: FeaturedRates | null; ratesSourceLine?: 
               placeholder="Ask about rates…"
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') send()
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  send()
+                }
               }}
             />
             <button

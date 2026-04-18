@@ -22,7 +22,7 @@ const EDITORIAL: FeedItem[] = [
   {
     id: 'ed-1',
     title: 'Official CBN window vs parallel market: why the spread matters',
-    body: 'Many Nigerians still price big-ticket items, school fees, and imports against parallel or street rates, while banks quote closer to the official window. The numbers on SpotRates are indicative mids—always confirm with your bank, BDC, or fintech before you trade.',
+    body: 'Many Nigerians still price big-ticket items, school fees, and imports against parallel or street rates, while banks quote closer to the official window. The numbers on E-lloydsFX are indicative mids—always confirm with your bank, BDC, or fintech before you trade.',
     tag: 'Nigeria',
     when: 'Today',
     url: 'https://www.cbn.gov.ng/rates/ExchRateByCurrency.html',
@@ -54,7 +54,7 @@ const EDITORIAL: FeedItem[] = [
   {
     id: 'ed-5',
     title: 'Disclaimer: not a Nigerian bank or BDC',
-    body: 'SpotRates is a demo-style rate board for learning and quick estimates. It is not CBN policy, not a licensed bureau de change, and not financial advice. For regulated FX, use CBN-licensed institutions and official channels.',
+    body: 'E-lloydsFX is a demo-style rate board for learning and quick estimates. It is not CBN policy, not a licensed bureau de change, and not financial advice. For regulated FX, use CBN-licensed institutions and official channels.',
     tag: 'Education',
     when: 'Ongoing',
     url: 'https://www.cbn.gov.ng/for-everyone/',
