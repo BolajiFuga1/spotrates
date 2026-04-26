@@ -50,12 +50,12 @@ export function VsNairaPanel(props: Props) {
           </h2>
           <p className="mt-1 max-w-2xl text-base font-semibold text-[var(--text-heading)] md:text-lg">
             {viewerInNigeria
-              ? 'Dollar, pound, and euro — each priced in naira from the same live snapshot.'
+              ? 'Dollar, pound, and euro, each priced in naira from the same live snapshot.'
               : 'How much ₦ for one dollar, one pound, and one euro (indicative mid rates).'}
           </p>
         </div>
         {hasError && !featured ? (
-          <p className="text-xs font-medium text-red-500">Stale or missing data — tap Refresh.</p>
+          <p className="text-xs font-medium text-red-500">Stale or missing data. Tap Refresh.</p>
         ) : null}
       </div>
 
@@ -99,7 +99,7 @@ export function VsNairaPanel(props: Props) {
                   <p className="mt-2 text-xs font-medium text-[var(--text-muted)]">{row.sub}</p>
                 </>
               ) : (
-                <p className="text-sm text-[var(--text-muted)]">—</p>
+                <p className="text-sm text-[var(--text-muted)]">No rate yet</p>
               )}
             </div>
           </article>

@@ -154,9 +154,9 @@ export function AdminApp() {
               <img
                 src="/elloydsfx-logo.png"
                 alt="E-lloydsFX"
-                className="h-8 w-auto max-w-[180px] object-contain object-left"
-                width={180}
-                height={36}
+                className="h-10 w-auto max-w-[200px] object-contain object-left"
+                width={1024}
+                height={1024}
               />
               <span className="rounded-md border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-widest text-[var(--accent)]">
                 Admin
@@ -221,7 +221,7 @@ export function AdminApp() {
             <div className="grid gap-5 md:grid-cols-1">
               <ManualRateCard
                 title="US Dollar"
-                code="USD · $"
+                code="USD ($)"
                 description="How many naira for one US dollar"
                 placeholder="e.g. 1430"
                 value={ngnUsd}
@@ -229,7 +229,7 @@ export function AdminApp() {
               />
               <ManualRateCard
                 title="British pound"
-                code="GBP · £"
+                code="GBP (£)"
                 description="How many naira for one pound sterling"
                 placeholder="e.g. 1820"
                 value={ngnGbp}
@@ -237,7 +237,7 @@ export function AdminApp() {
               />
               <ManualRateCard
                 title="Euro"
-                code="EUR · €"
+                code="EUR (€)"
                 description="How many naira for one euro"
                 placeholder="e.g. 1560"
                 value={ngnEur}

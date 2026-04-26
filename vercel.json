@@ -6,6 +6,11 @@
   ],
   "rewrites": [
     { "source": "/admin", "destination": "/admin.html" },
-    { "source": "/admin/", "destination": "/admin.html" }
+    { "source": "/admin/", "destination": "/admin.html" },
+    { "source": "/about", "destination": "/index.html" },
+    { "source": "/services", "destination": "/index.html" },
+    { "source": "/news", "destination": "/index.html" },
+    { "source": "/converter", "destination": "/index.html" },
+    { "source": "/disclosure", "destination": "/index.html" }
   ]
 }

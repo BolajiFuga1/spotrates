@@ -1,5 +1,19 @@
 import { formatNumber, type FeaturedRates } from './fx'
 
+/** WhatsApp deep link: opens app on mobile, WhatsApp Web / desktop client where supported. */
+export const WHATSAPP_SPECIALIST_HREF =
+  'https://wa.me/2348094705599?text=' + encodeURIComponent('Hello E-lloydsFX, I have a question.')
+
+export type BotReply = {
+  text: string
+  /** Show “Talk to a specialist” when the question is not covered by on-site content. */
+  talkToSpecialist?: boolean
+}
+
+function r(text: string, talkToSpecialist?: boolean): BotReply {
+  return talkToSpecialist ? { text, talkToSpecialist: true } : { text }
+}
+
 /** Lowercase, collapse spaces, strip most punctuation for matching. */
 function norm(s: string): string {
   return s
@@ -10,108 +24,117 @@ function norm(s: string): string {
     .trim()
 }
 
+/** User seems to be asking about published FX on this site (vs random trivia). */
+function wantsSiteRatesContext(n: string, raw: string): boolean {
+  if (
+    /(usd|dollar|\$|eur|euro|gbp|pound|£|naira|ngn|₦|rate|convert|conversion|fx|forex|currency|mid|pair|cross|snapshot)/.test(
+      n,
+    )
+  ) {
+    return true
+  }
+  if (/\d/.test(raw) && /(usd|eur|gbp|ngn|naira|dollar|pound|euro)/i.test(raw)) return true
+  return false
+}
+
 export function makeBotReply(
   inputRaw: string,
   rates: FeaturedRates | null,
   ratesSourceLine: string | null | undefined,
-): string {
+): BotReply {
   const raw = inputRaw.trim()
-  if (!raw) return "Type a question and I'll help."
+  if (!raw) return r("Ask something and I'll look it up on this site.")
 
   const input = raw.toLowerCase()
   const n = norm(raw)
   const hasRates = !!rates
 
   if (/(^|\b)(hi|hello|hey)\b/.test(input) || /good\s*(morning|afternoon|evening)/.test(input)) {
-    return (
-      'Hi! I can explain E-lloydsFX services (PTA/BTA, remittances, delivery, bank deposits), or published FX rates ' +
-      '(USD/GBP/EUR vs NGN). Try “What is PTA?” or “USD to naira”.'
+    return r(
+      'Hello! I stick to what is published here: the FX mids (USD, GBP, EUR, NGN) and the wording on Services (PTA, BTA, remittances, delivery, and the rest). Say help if you want examples, or ask something like USD to naira.',
     )
+  }
+
+  if (/\b(thanks|thank you|ty|cheers)\b/.test(input)) {
+    return r('You are welcome. Say help anytime if you want more examples.')
+  }
+
+  if (/\b(bye|goodbye)\b/.test(input)) {
+    return r('Take care. Published rates refresh about every minute, or tap Refresh in the header.')
   }
 
   if (/\b(help|what can you|commands)\b/.test(input)) {
-    return (
-      'Try asking about:\n' +
-      '• Rates: “USD to NGN”, “pound to naira”, “euro rate”\n' +
-      '• Site: “refresh”, “where do rates come from”\n' +
-      '• E-lloydsFX: “PTA”, “BTA”, “remittance”, “delivery”, “cashless”\n' +
-      'Or open the Services section on this page for full details.'
+    return r(
+      'I pull answers from this website only. You can ask about:\n' +
+        'Rates: “USD to NGN”, “pound to naira”, “euro rate”.\n' +
+        'This site: “refresh”, “where do rates come from”.\n' +
+        'Services: PTA, BTA, remittance, delivery, cashless.\n' +
+        'For the full service text, open Services in the menu.',
     )
   }
 
-  if (/(service|germaine|e-lloyds|elloyds|bdc|what do you offer|what services)/.test(input)) {
-    return (
-      'E-lloydsFX offers cash forex purchase/sale, PTA & BTA (CBN-authorized limits apply), remittances (school fees, ' +
-      'medical, utilities, and more), inflows, deliveries, bank deposits, accounts at major banks, and cashless ' +
-      'payments (wire/deposit). See “Our services” on this page for the full breakdown.'
+  if (/(service|e-lloyds|elloyds|bdc|what do you offer|what services)/.test(input)) {
+    return r(
+      'On the Services page we list cash forex buy and sell, PTA and BTA (CBN rules apply), remittances, inflows, deliveries, bank deposits, accounts at major banks, and cashless payments. Open Services in the menu for the exact wording.',
     )
   }
 
   if (/\bpta\b|personal travel allowance/.test(input)) {
-    return (
-      'PTA (Personal Travel Allowance): E-lloydsFX is CBN-authorized. Travelers can buy FX up to $4,000 per quarter ' +
-      '(or GBP/EUR equivalent). You cannot buy PTA and BTA for the same trip (both in the same quarter is allowed). ' +
-      'PTA is only for your nuclear family (spouse + up to two children over 12). No PTA/BTA for travel to some ' +
-      'West African destinations or visa-free places—see Services for details.'
+    return r(
+      'From Services: PTA is CBN authorized, up to $4,000 per quarter (or GBP or EUR equivalent). You cannot use PTA and BTA on the same trip. PTA is for your immediate family only (spouse plus up to two children over 12). Some destinations are excluded. See Services for the full list.',
     )
   }
 
   if (/\bbta\b|business travel allowance/.test(input)) {
-    return (
-      'BTA (Business Travel Allowance): E-lloydsFX is CBN-authorized. Up to $5,000 per quarter (or GBP/EUR equivalent). ' +
-      'You cannot buy BTA and PTA for the same trip. Full rules are under “Our services” on this page.'
+    return r(
+      'From Services: BTA is CBN authorized, up to $5,000 per quarter (or GBP or EUR equivalent). You cannot use BTA and PTA on the same trip. See Services for details.',
     )
   }
 
   if (/remitt|wire|transfer|school fee|medical fee|mortgage|utility|subscription|insurance premium/.test(input)) {
-    return (
-      'E-lloydsFX arranges FX remittances for travel allowances, mortgages, school fees, medical fees, card bills, ' +
-      'utilities, hospital and rent bills, subscriptions, professional fees, and life insurance premiums—see the list ' +
-      'under “Foreign exchange remittance services” on this page.'
+    return r(
+      'Services lists the kinds of remittance style payments we help with (travel allowances, mortgages, school fees, card bills, utilities, and more). Open that page for the full bullet list.',
     )
   }
 
   if (/delivery|deliveries|traffic/.test(input)) {
-    return (
-      'E-lloydsFX offers delivery for larger currency purchases; smaller amounts may incur a small delivery fee—' +
-      'popular with clients who want to avoid traffic.'
+    return r(
+      'Services says we can deliver larger currency purchases. Smaller amounts may have a small delivery fee. Many clients use delivery to skip sitting in traffic.',
     )
   }
 
   if (/bank deposit|deposit.*forex|forex.*account/.test(input)) {
-    return (
-      'We can help deposit purchased forex to your bank—often straight to your FX account so you can settle foreign ' +
-      'goods or services faster.'
+    return r(
+      'Services explains that we help deposit purchased forex at your bank, often into your FX account when you are paying for foreign goods or services.',
     )
   }
 
   if (/multiple bank|which bank|account/.test(input)) {
-    return (
-      'E-lloydsFX holds accounts across major Nigerian banks so customers can pay or receive through the bank that ' +
-      'suits them best.'
+    return r(
+      'Services notes that we keep accounts at major Nigerian banks so you can deal through whichever bank suits you.',
     )
   }
 
   if (/cashless|pay cash|wire funds|deposit/.test(input)) {
-    return (
-      'E-lloydsFX is cashless for buying forex—you can wire or deposit to our accounts instead of bringing cash.'
+    return r(
+      'Services says buying forex with us is cashless: you can wire or deposit to our accounts instead of bringing cash.',
     )
   }
 
   if (/inflow|credit.*purpose|larger.*wire/.test(input)) {
-    return (
-      'We can source larger wires for direct credit when customers prefer an inflow to holding physical cash.'
+    return r(
+      'Services describes sourcing larger wires for direct credit when you prefer an inflow instead of holding cash.',
     )
   }
 
   if (/(update|refresh|how\s*often|every\s*how)/.test(input)) {
-    return 'Published rates on this page refetch about every 60 seconds. You can also tap “Refresh” in the header.'
+    return r('Published rates on this site refetch about every 60 seconds. You can also tap Refresh in the header.')
   }
 
   if (/(source|where.*rate|who set|api|how.*rate)/.test(input)) {
-    return (
+    return r(
       ratesSourceLine?.trim() ||
-      'Rates here are published from the E-lloydsFX admin dashboard only—not live scraped market feeds.'
+        'Rates here are entered in the E-lloydsFX admin dashboard. We do not scrape live market feeds.',
     )
   }
 
@@ -122,69 +145,79 @@ export function makeBotReply(
 
   if ((mentionsUsd && mentionsNgn) || /\b(usd|dollar).{0,24}(ngn|naira)\b/.test(input)) {
     return hasRates
-      ? `About 1 USD ≈ ${formatNumber(rates!.usdToNgn, 6)} NGN (published mid on this page).`
-      : 'Rates are still loading—publish USD/NGN from admin if you see errors, then try again.'
+      ? r(`Right now about 1 USD is ${formatNumber(rates!.usdToNgn, 6)} NGN, same mid as the converter and home page.`)
+      : r(
+          'USD/NGN is not published on the site yet. Someone on the team can help on WhatsApp.',
+          true,
+        )
   }
 
   if ((mentionsGbp && mentionsNgn) || /\b(gbp|pound).{0,24}(ngn|naira)\b/.test(input)) {
     return hasRates
-      ? `About 1 GBP ≈ ${formatNumber(rates!.gbpToNgn, 6)} NGN (published mid on this page).`
-      : 'Rates are still loading—check admin publish status and retry.'
+      ? r(`Right now about 1 GBP is ${formatNumber(rates!.gbpToNgn, 6)} NGN, same mid as on this site.`)
+      : r('GBP/NGN is not loaded yet. Someone on the team can help on WhatsApp.', true)
   }
 
   if ((mentionsEur && mentionsNgn) || /\b(eur|euro).{0,24}(ngn|naira)\b/.test(input)) {
     return hasRates
-      ? `About 1 EUR ≈ ${formatNumber(rates!.eurToNgn, 6)} NGN (published mid on this page).`
-      : 'Rates are still loading—check admin publish status and retry.'
+      ? r(`Right now about 1 EUR is ${formatNumber(rates!.eurToNgn, 6)} NGN, same mid as on this site.`)
+      : r('EUR/NGN is not loaded yet. Someone on the team can help on WhatsApp.', true)
   }
 
   if ((mentionsUsd && mentionsGbp) || /\b(usd|dollar).{0,24}(gbp|pound)\b/.test(input)) {
     return hasRates
-      ? `About 1 USD ≈ ${formatNumber(rates!.usdToGbp, 6)} GBP.`
-      : 'Rates are still loading—try again shortly.'
+      ? r(`Right now about 1 USD is ${formatNumber(rates!.usdToGbp, 6)} GBP on the published mid.`)
+      : r('Cross rates are not loaded yet. Someone on the team can help on WhatsApp.', true)
   }
 
   if ((mentionsUsd && mentionsEur) || /\b(usd|dollar).{0,24}(eur|euro)\b/.test(input)) {
     return hasRates
-      ? `About 1 USD ≈ ${formatNumber(rates!.usdToEur, 6)} EUR.`
-      : 'Rates are still loading—try again shortly.'
+      ? r(`Right now about 1 USD is ${formatNumber(rates!.usdToEur, 6)} EUR on the published mid.`)
+      : r('Cross rates are not loaded yet. Someone on the team can help on WhatsApp.', true)
   }
 
-  // Single-word or short asks: "naira", "usd rate", "euro"
   if (hasRates && (/\brate\b|\bprice\b|\bhow much\b/.test(n) || n === 'usd' || n === 'dollar')) {
     if (mentionsNgn || /\bnaira\b/.test(input)) {
-      return `USD/NGN ≈ ${formatNumber(rates!.usdToNgn, 6)}. I can also answer GBP/NGN or EUR/NGN—just ask “pound to naira”.`
+      return r(
+        `USD/NGN is about ${formatNumber(rates!.usdToNgn, 6)} on this site. You can also ask pound to naira for GBP/NGN.`,
+      )
     }
-    return `1 USD ≈ ${formatNumber(rates!.usdToNgn, 6)} NGN on the current snapshot. Ask “GBP to NGN” for pounds.`
+    return r(`1 USD is about ${formatNumber(rates!.usdToNgn, 6)} NGN on the current published snapshot.`)
   }
 
   if (hasRates && (/\bpound\b|\bgbp\b/.test(input) || n === 'gbp')) {
-    return `1 GBP ≈ ${formatNumber(rates!.gbpToNgn, 6)} NGN on the current snapshot.`
+    return r(`1 GBP is about ${formatNumber(rates!.gbpToNgn, 6)} NGN on the current published snapshot.`)
   }
 
   if (hasRates && (/\beuro\b|\beur\b/.test(input) || n === 'eur')) {
-    return `1 EUR ≈ ${formatNumber(rates!.eurToNgn, 6)} NGN on the current snapshot.`
+    return r(`1 EUR is about ${formatNumber(rates!.eurToNgn, 6)} NGN on the current published snapshot.`)
   }
 
   if (hasRates && /\bnaira\b|\bngn\b/.test(input) && !mentionsUsd && !mentionsGbp && !mentionsEur) {
-    return (
-      `Published mids: USD/NGN ${formatNumber(rates!.usdToNgn, 4)}, GBP/NGN ${formatNumber(rates!.gbpToNgn, 4)}, EUR/NGN ${formatNumber(rates!.eurToNgn, 4)}. ` +
-      'Ask for a specific pair if you need more precision.'
+    return r(
+      `Published right now on this site: USD/NGN ${formatNumber(rates!.usdToNgn, 4)}, GBP/NGN ${formatNumber(rates!.gbpToNgn, 4)}, EUR/NGN ${formatNumber(rates!.eurToNgn, 4)}. Ask for a pair if you need more detail.`,
+    )
+  }
+
+  if (hasRates && wantsSiteRatesContext(n, raw)) {
+    return r(
+      'I could not match that to a specific line on the site. Here are the published mids:\n' +
+        `USD/NGN ${formatNumber(rates!.usdToNgn, 4)}\n` +
+        `GBP/NGN ${formatNumber(rates!.gbpToNgn, 4)}\n` +
+        `EUR/NGN ${formatNumber(rates!.eurToNgn, 4)}\n` +
+        'Try help, PTA, or something like dollar to naira.',
     )
   }
 
   if (hasRates) {
-    return (
-      'I did not match that exactly. Published snapshot right now:\n' +
-      `• USD/NGN ${formatNumber(rates!.usdToNgn, 4)}\n` +
-      `• GBP/NGN ${formatNumber(rates!.gbpToNgn, 4)}\n` +
-      `• EUR/NGN ${formatNumber(rates!.eurToNgn, 4)}\n` +
-      'Try “help”, “PTA”, “remittance”, or a pair like “dollar to naira”.'
+    return r(
+      'That is outside what we publish on this website. Tap below to message a specialist on WhatsApp.',
+      true,
     )
   }
 
-  return (
-    'Rates are not loaded yet (admin may need to publish). Meanwhile I can explain E-lloydsFX services—try ' +
-    '“help”, “PTA”, “BTA”, or “remittance”. You can also read “Our services” on this page.'
+  return r(
+    'Rates are not on the site yet so I cannot quote numbers. Say help for service topics, or use WhatsApp below to reach the team.',
+    true,
   )
 }

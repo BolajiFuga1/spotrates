@@ -1,10 +1,11 @@
-/**
- * E-lloydsFX — services copy for the public site (Services section).
- */
+/** E-lloydsFX services copy for the public Services section. */
 export function ElloydsServices() {
   return (
     <div className="mt-8 space-y-10">
-      <div className="rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] p-6 shadow-[var(--shadow-lg)] md:p-8">
+      <div
+        id="service-forex-cash"
+        className="scroll-mt-28 rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] p-6 shadow-[var(--shadow-lg)] md:p-8"
+      >
         <h3 className="text-base font-bold text-[var(--text-heading)]">Cash purchase &amp; sales (forex)</h3>
         <p className="mt-3 text-sm leading-relaxed text-[var(--text)]">
           Call us at <strong className="text-[var(--text-heading)]">E-lloydsFX</strong> for your cash purchase and sales of
@@ -12,7 +13,10 @@ export function ElloydsServices() {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] p-6 shadow-[var(--shadow-lg)] md:p-8">
+      <div
+        id="service-pta-bta"
+        className="scroll-mt-28 rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] p-6 shadow-[var(--shadow-lg)] md:p-8"
+      >
         <h3 className="text-base font-bold text-[var(--text-heading)]">Sale of personal / business travel allowance</h3>
         <p className="mt-3 text-sm leading-relaxed text-[var(--text)]">
           E-lloydsFX is authorized by the <strong className="text-[var(--text-heading)]">Central Bank of Nigeria</strong> as
@@ -38,7 +42,10 @@ export function ElloydsServices() {
         </ul>
       </div>
 
-      <div className="rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] p-6 shadow-[var(--shadow-lg)] md:p-8">
+      <div
+        id="service-remittance"
+        className="scroll-mt-28 rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] p-6 shadow-[var(--shadow-lg)] md:p-8"
+      >
         <h3 className="text-base font-bold text-[var(--text-heading)]">Foreign exchange remittance services</h3>
         <p className="mt-3 text-sm leading-relaxed text-[var(--text)]">
           At E-lloydsFX, we also arrange foreign exchange remittance services for:
@@ -59,14 +66,20 @@ export function ElloydsServices() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+        <div
+          id="service-foreign-payments"
+          className="scroll-mt-28 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5"
+        >
           <h3 className="text-sm font-bold text-[var(--text-heading)]">Inflows</h3>
           <p className="mt-2 text-sm leading-relaxed text-[var(--text)]">
             At E-lloydsFX, we have a strong network that allows us to source larger-than-normal wires for direct credit
             purposes. Customers sometimes prefer a credit/inflow rather than cash deposits.
           </p>
         </div>
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+        <div
+          id="service-cash-delivery"
+          className="scroll-mt-28 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5"
+        >
           <h3 className="text-sm font-bold text-[var(--text-heading)]">Deliveries</h3>
           <p className="mt-2 text-sm leading-relaxed text-[var(--text)]">
             E-lloydsFX provides delivery services for customers who purchase larger amounts of currency. For smaller
@@ -76,7 +89,7 @@ export function ElloydsServices() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
           <h3 className="text-sm font-bold text-[var(--text-heading)]">Bank deposits</h3>
           <p className="mt-2 text-sm leading-relaxed text-[var(--text)]">
-            We help customers deposit forex bought into banks—often to pay for foreign goods or services, with funds paid
+            We help customers deposit forex bought into banks, often to pay for foreign goods or services, with funds paid
             straight to their forex accounts at a local bank so they can complete transactions faster.
           </p>
         </div>

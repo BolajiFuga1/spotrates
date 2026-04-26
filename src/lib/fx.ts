@@ -24,8 +24,11 @@ export async function fetchManualRatesSnapshot(signal?: AbortSignal): Promise<Fx
   )
 }
 
-export function describeRateSource(_snapshot: FxSnapshot): string {
-  return 'Rates are set only from the E-lloydsFX admin dashboard (not from external market APIs).'
+export function describeRateSource(snapshot: FxSnapshot): string {
+  if (snapshot.provider !== 'admin.manual') {
+    return 'Rates come from the E-lloydsFX admin dashboard.'
+  }
+  return 'Rates come from the E-lloydsFX admin dashboard.'
 }
 
 export type FeaturedRates = {

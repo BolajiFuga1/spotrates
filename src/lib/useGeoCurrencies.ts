@@ -63,3 +63,5 @@ export function useGeoCurrencies() {
 
   return { from, to, setFromUser, setToUser, swapCurrencies, geoHint, countryCode }
 }
+
+export type GeoCurrenciesContextValue = ReturnType<typeof useGeoCurrencies>

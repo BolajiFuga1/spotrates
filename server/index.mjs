@@ -2,6 +2,7 @@ import cookieParser from 'cookie-parser'
 import crypto from 'node:crypto'
 import dotenv from 'dotenv'
 import express from 'express'
+import { fetchNigeriaFxNewsItems } from '../lib/nigeriaFxNews.mjs'
 import { existsSync, readFileSync } from 'node:fs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
@@ -247,6 +248,44 @@ app.get('/api/public/rates', async (_req, res) => {
   })
 })
 
+let newsCache = { at: 0, items: [] }
+const NEWS_TTL_MS = 15 * 60 * 1000
+
+app.get('/api/public/nigeria-fx-news', async (_req, res) => {
+  const fresh = Date.now() - newsCache.at < NEWS_TTL_MS && newsCache.items.length > 0
+  if (fresh) {
+    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=600')
+    return res.json({ ok: true, items: newsCache.items })
+  }
+  try {
+    const ac = new AbortController()
+    const t = setTimeout(() => ac.abort(), 16_000)
+    let items
+    try {
+      items = await fetchNigeriaFxNewsItems({ limit: 30, signal: ac.signal })
+    } finally {
+      clearTimeout(t)
+    }
+    if (!items.length && newsCache.items.length) {
+      res.setHeader('Cache-Control', 'public, max-age=120')
+      return res.json({ ok: true, items: newsCache.items, stale: true })
+    }
+    if (!items.length) {
+      return res.status(502).json({ ok: false, error: 'No news items available' })
+    }
+    newsCache = { at: Date.now(), items }
+    res.setHeader('Cache-Control', 'public, max-age=600, s-maxage=900')
+    res.json({ ok: true, items })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Request failed'
+    if (newsCache.items.length) {
+      res.setHeader('Cache-Control', 'public, max-age=120')
+      return res.json({ ok: true, items: newsCache.items, stale: true })
+    }
+    res.status(502).json({ ok: false, error: msg })
+  }
+})
+
 app.post('/api/admin/login', (req, res) => {
   if (!ADMIN_AUTH_ENABLED) {
     return res.json({ ok: true })
@@ -338,6 +377,13 @@ const DIST_DIR = path.join(ROOT, 'dist')
 if (existsSync(DIST_DIR)) {
   app.use(express.static(DIST_DIR, { index: 'index.html' }))
   console.log(`[spotrates-api] Serving static site from ${DIST_DIR}`)
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next()
+    if (req.path.startsWith('/api')) return next()
+    res.sendFile(path.join(DIST_DIR, 'index.html'), (err) => {
+      if (err) next(err)
+    })
+  })
 }
 
 /**

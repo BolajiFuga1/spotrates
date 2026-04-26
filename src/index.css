@@ -24,7 +24,8 @@
     --accent-border: rgba(232, 110, 37, 0.5);
     --positive: #34d399;
     --positive-dim: rgba(52, 211, 153, 0.12);
-    --ticker-bg: #081426;
+    /* Match logo / accent orange */
+    --ticker-bg: var(--brand-orange);
     --shadow-lg: 0 24px 48px -12px rgba(0, 0, 0, 0.5);
     --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -47,7 +48,7 @@
       --accent-border: rgba(232, 110, 37, 0.42);
       --positive: #059669;
       --positive-dim: rgba(5, 150, 105, 0.1);
-      --ticker-bg: #e8ecf4;
+      --ticker-bg: var(--brand-orange);
       --shadow-lg: 0 20px 40px -12px rgba(20, 48, 97, 0.12);
     }
   }

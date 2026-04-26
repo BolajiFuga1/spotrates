@@ -35,13 +35,13 @@ export function useFxRates(refreshEveryMs = 60_000) {
   }
 
   useEffect(() => {
-    void refresh()
+    const t = window.setTimeout(() => void refresh(), 0)
     const id = window.setInterval(() => void refresh(), refreshEveryMs)
     return () => {
+      window.clearTimeout(t)
       window.clearInterval(id)
       abortRef.current?.abort()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshEveryMs])
 
   const featured = useMemo(() => {
@@ -56,3 +56,4 @@ export function useFxRates(refreshEveryMs = 60_000) {
   return { state, featured, refresh }
 }
 
+export type FxRatesContextValue = ReturnType<typeof useFxRates>
