@@ -26,9 +26,9 @@ export async function fetchManualRatesSnapshot(signal?: AbortSignal): Promise<Fx
 
 export function describeRateSource(snapshot: FxSnapshot): string {
   if (snapshot.provider !== 'admin.manual') {
-    return 'Rates come from the E-lloydsFX admin dashboard.'
+    return 'Rates come from the e-lloydsFX admin dashboard.'
   }
-  return 'Rates come from the E-lloydsFX admin dashboard.'
+  return 'Rates come from the e-lloydsFX admin dashboard.'
 }
 
 export type FeaturedRates = {

@@ -60,17 +60,14 @@ export function SiteLayout() {
 
       <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_88%,transparent)] backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5 md:px-6 md:py-4">
-          <Link to="/" className="flex min-w-0 items-center gap-3 text-left" onClick={() => setNavOpen(false)}>
+          <Link to="/" className="flex min-w-0 items-center text-left" onClick={() => setNavOpen(false)}>
             <img
               src="/elloydsfx-logo.png"
-              alt="E-lloydsFX"
+              alt="e-lloydsFX"
               className="h-16 w-auto max-w-[min(380px,62vw)] shrink-0 object-contain object-left md:h-[4.5rem] md:max-w-[min(420px,52vw)] lg:h-[5rem] lg:max-w-[min(460px,45vw)]"
               width={1024}
               height={1024}
             />
-            <div className="min-w-0 border-l border-[var(--border)] pl-3">
-              <div className="text-base font-bold tracking-tight text-[var(--text-heading)]">E-lloydsFX</div>
-            </div>
           </Link>
 
           <nav className="hidden max-w-xl flex-wrap items-center justify-end gap-1 md:flex lg:max-w-none" aria-label="Primary">
@@ -155,17 +152,14 @@ export function SiteLayout() {
       <footer className="border-t border-[var(--border)] bg-[var(--surface)] py-10">
         <div className="mx-auto max-w-6xl px-4 md:px-6">
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center">
               <img
                 src="/elloydsfx-logo.png"
-                alt="E-lloydsFX"
+                alt="e-lloydsFX"
                 className="h-14 w-auto max-w-[280px] shrink-0 object-contain object-left md:h-16 md:max-w-[320px] lg:h-[4.25rem] lg:max-w-[360px]"
                 width={1024}
                 height={1024}
               />
-              <div className="min-w-0">
-                <div className="text-sm font-bold text-[var(--text-heading)]">E-lloydsFX</div>
-              </div>
             </div>
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Site</h3>
@@ -193,8 +187,6 @@ export function SiteLayout() {
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Location</h3>
               <address className="mt-3 not-italic text-sm leading-relaxed text-[var(--text)]">
-                E-lloydsFX
-                <br />
                 Suite 11, Matia Mall Orchid Road, Lekki Phase II
                 <br />
                 Lagos, Nigeria
@@ -203,7 +195,7 @@ export function SiteLayout() {
             </div>
           </div>
           <p className="mt-10 border-t border-[var(--border)] pt-6 text-xs text-[var(--text-muted)]">
-            © {new Date().getFullYear()} E-lloydsFX. Not financial advice. Rates are indicative only.
+            © {new Date().getFullYear()} e-lloydsFX. Not financial advice. Rates are indicative only.
           </p>
         </div>
       </footer>

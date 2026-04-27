@@ -153,7 +153,7 @@ export function AdminApp() {
             <div className="flex flex-wrap items-center gap-3">
               <img
                 src="/elloydsfx-logo.png"
-                alt="E-lloydsFX"
+                alt="e-lloydsFX"
                 className="h-14 w-auto max-w-[300px] object-contain object-left sm:h-16 sm:max-w-[360px]"
                 width={1024}
                 height={1024}

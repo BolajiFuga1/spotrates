@@ -5,7 +5,7 @@
 @source './**/*.{ts,tsx}';
 
 @layer base {
-  /* E-lloydsFX brand: navy #143061, accent orange #E86E25 */
+  /* e-lloydsFX brand: navy #143061, accent orange #E86E25 */
   :root {
     --brand-navy: #143061;
     --brand-orange: #e86e25;
