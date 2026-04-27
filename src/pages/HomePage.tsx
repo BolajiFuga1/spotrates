@@ -17,7 +17,7 @@ export function HomePage() {
             We manage your FX needs.
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-[var(--text)]">
-            Access competitive rates, fast processing, and reliable support—designed to simplify every step of your
+            Access competitive rates, fast processing, and reliable support, designed to simplify every step of your
             currency exchange.
           </p>
           {state.status === 'error' ? <p className="mt-2 text-xs text-red-500">{state.error}</p> : null}
