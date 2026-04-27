@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { CbnOfficialBanner } from '../components/CbnOfficialBanner'
 import { Chatbot } from '../components/Chatbot'
 import { useFxRates } from '../lib/useFxRates'
 import { useGeoCurrencies } from '../lib/useGeoCurrencies'
@@ -65,7 +64,7 @@ export function SiteLayout() {
             <img
               src="/elloydsfx-logo.png"
               alt="E-lloydsFX"
-              className="h-12 w-auto max-w-[min(220px,50vw)] shrink-0 object-contain object-left md:h-14"
+              className="h-14 w-auto max-w-[min(300px,58vw)] shrink-0 object-contain object-left md:h-16 md:max-w-[min(340px,48vw)]"
               width={1024}
               height={1024}
             />
@@ -149,8 +148,6 @@ export function SiteLayout() {
         ) : null}
       </header>
 
-      <CbnOfficialBanner />
-
       <main>
         <Outlet context={{ state, featured, refresh, ...geo }} />
       </main>
@@ -162,7 +159,7 @@ export function SiteLayout() {
               <img
                 src="/elloydsfx-logo.png"
                 alt="E-lloydsFX"
-                className="h-10 w-auto max-w-[180px] shrink-0 object-contain object-left"
+                className="h-12 w-auto max-w-[240px] shrink-0 object-contain object-left md:h-14 md:max-w-[280px]"
                 width={1024}
                 height={1024}
               />

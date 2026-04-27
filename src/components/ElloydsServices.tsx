@@ -43,12 +43,12 @@ export function ElloydsServices() {
       </div>
 
       <div
-        id="service-remittance"
+        id="service-fx-payments"
         className="scroll-mt-28 rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] p-6 shadow-[var(--shadow-lg)] md:p-8"
       >
-        <h3 className="text-base font-bold text-[var(--text-heading)]">Foreign exchange remittance services</h3>
+        <h3 className="text-base font-bold text-[var(--text-heading)]">Foreign exchange payment services</h3>
         <p className="mt-3 text-sm leading-relaxed text-[var(--text)]">
-          At E-lloydsFX, we also arrange foreign exchange remittance services for:
+          At E-lloydsFX, we also arrange foreign exchange payment services for:
         </p>
         <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-[var(--text)]">
           <li>Business and personal travel allowances</li>
@@ -66,16 +66,6 @@ export function ElloydsServices() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <div
-          id="service-foreign-payments"
-          className="scroll-mt-28 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5"
-        >
-          <h3 className="text-sm font-bold text-[var(--text-heading)]">Inflows</h3>
-          <p className="mt-2 text-sm leading-relaxed text-[var(--text)]">
-            At E-lloydsFX, we have a strong network that allows us to source larger-than-normal wires for direct credit
-            purposes. Customers sometimes prefer a credit/inflow rather than cash deposits.
-          </p>
-        </div>
         <div
           id="service-cash-delivery"
           className="scroll-mt-28 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5"

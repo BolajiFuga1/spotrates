@@ -154,7 +154,7 @@ export function AdminApp() {
               <img
                 src="/elloydsfx-logo.png"
                 alt="E-lloydsFX"
-                className="h-10 w-auto max-w-[200px] object-contain object-left"
+                className="h-12 w-auto max-w-[260px] object-contain object-left sm:h-14 sm:max-w-[300px]"
                 width={1024}
                 height={1024}
               />

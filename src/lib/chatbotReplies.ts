@@ -51,7 +51,7 @@ export function makeBotReply(
 
   if (/(^|\b)(hi|hello|hey)\b/.test(input) || /good\s*(morning|afternoon|evening)/.test(input)) {
     return r(
-      'Hello! I stick to what is published here: the FX mids (USD, GBP, EUR, NGN) and the wording on Services (PTA, BTA, remittances, delivery, and the rest). Say help if you want examples, or ask something like USD to naira.',
+      'Hello! I stick to what is published here: the FX mids (USD, GBP, EUR, NGN) and the wording on Services (PTA, BTA, international payments, delivery, and the rest). Say help if you want examples, or ask something like USD to naira.',
     )
   }
 
@@ -68,14 +68,14 @@ export function makeBotReply(
       'I pull answers from this website only. You can ask about:\n' +
         'Rates: “USD to NGN”, “pound to naira”, “euro rate”.\n' +
         'This site: “refresh”, “where do rates come from”.\n' +
-        'Services: PTA, BTA, remittance, delivery, cashless.\n' +
+        'Services: PTA, BTA, payments, delivery, cashless.\n' +
         'For the full service text, open Services in the menu.',
     )
   }
 
   if (/(service|e-lloyds|elloyds|bdc|what do you offer|what services)/.test(input)) {
     return r(
-      'On the Services page we list cash forex buy and sell, PTA and BTA (CBN rules apply), remittances, inflows, deliveries, bank deposits, accounts at major banks, and cashless payments. Open Services in the menu for the exact wording.',
+      'On the Services page we list cash forex buy and sell, PTA and BTA (CBN rules apply), cross-border payments, deliveries, bank deposits, accounts at major banks, and cashless payments. Open Services in the menu for the exact wording.',
     )
   }
 
@@ -93,7 +93,7 @@ export function makeBotReply(
 
   if (/remitt|wire|transfer|school fee|medical fee|mortgage|utility|subscription|insurance premium/.test(input)) {
     return r(
-      'Services lists the kinds of remittance style payments we help with (travel allowances, mortgages, school fees, card bills, utilities, and more). Open that page for the full bullet list.',
+      'Services lists the kinds of international payment services we help with (travel allowances, mortgages, school fees, card bills, utilities, and more). Open that page for the full bullet list.',
     )
   }
 
@@ -118,12 +118,6 @@ export function makeBotReply(
   if (/cashless|pay cash|wire funds|deposit/.test(input)) {
     return r(
       'Services says buying forex with us is cashless: you can wire or deposit to our accounts instead of bringing cash.',
-    )
-  }
-
-  if (/inflow|credit.*purpose|larger.*wire/.test(input)) {
-    return r(
-      'Services describes sourcing larger wires for direct credit when you prefer an inflow instead of holding cash.',
     )
   }
 

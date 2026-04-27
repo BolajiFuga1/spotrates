@@ -14,7 +14,7 @@ export function DisclosurePage() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
           <h2 className="text-sm font-semibold text-[var(--text-heading)]">Not financial advice</h2>
           <p className="mt-2 text-sm leading-relaxed text-[var(--text)]">
-            Banks, cards, and remittance services apply their own spreads and fees. Confirm amounts with your provider
+            Banks, cards, and other payment providers apply their own spreads and fees. Confirm amounts with your provider
             before you send money.
           </p>
         </div>

@@ -7,7 +7,7 @@ export function ServicesPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-[var(--accent)]">Services</p>
       <h1 className="mt-2 text-3xl font-bold tracking-tight text-[var(--text-heading)] md:text-4xl">Our services</h1>
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[var(--text)]">
-        <strong className="text-[var(--text-heading)]">E-lloydsFX</strong> offers the FX and remittance services below. This
+        <strong className="text-[var(--text-heading)]">E-lloydsFX</strong> offers the FX services below. This
         site also publishes indicative rates (USD, GBP, EUR, NGN) for quick reference alongside our desk services.
       </p>
       <div className="mt-10">

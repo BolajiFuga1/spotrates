@@ -38,21 +38,6 @@ function IconCard(props: { className?: string }) {
   )
 }
 
-function IconGlobe(props: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={props.className} aria-hidden>
-      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.75" />
-      <path
-        d="M3 12h18M12 3c2.8 2.5 2.8 15.5 0 18M12 3c-2.8 2.5-2.8 15.5 0 18"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
 function IconDelivery(props: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={props.className} aria-hidden>
@@ -86,14 +71,9 @@ const HIGHLIGHTS = [
     Icon: IconCash,
   },
   {
-    id: 'service-remittance',
+    id: 'service-fx-payments',
     title: 'Credit card payments',
     Icon: IconCard,
-  },
-  {
-    id: 'service-foreign-payments',
-    title: 'Foreign payments',
-    Icon: IconGlobe,
   },
   {
     id: 'service-cash-delivery',
