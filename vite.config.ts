@@ -19,8 +19,9 @@ const apiProxy = {
   },
 } as const
 
-// GitHub Pages project site: build with VITE_BASE_PATH=/spotrates/ (repo name, slashes optional).
-const rawBase = (process.env.VITE_BASE_PATH && process.env.VITE_BASE_PATH.trim()) || './'
+// Default `/` so favicon and assets resolve from the site root on SPAs (e.g. `/services` → `/favicon.png`).
+// GitHub Pages project sites: build with VITE_BASE_PATH=/spotrates/
+const rawBase = (process.env.VITE_BASE_PATH && process.env.VITE_BASE_PATH.trim()) || '/'
 const viteBase =
   rawBase === './' || rawBase === '.'
     ? './'

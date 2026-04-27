@@ -1,5 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "headers": [
+    {
+      "source": "/favicon.png",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400, must-revalidate" }]
+    }
+  ],
   "redirects": [
     { "source": "/admin", "destination": "/admin.html", "permanent": false },
     { "source": "/admin/", "destination": "/admin.html", "permanent": false }
