@@ -27,14 +27,156 @@ function norm(s: string): string {
 /** User seems to be asking about published FX on this site (vs random trivia). */
 function wantsSiteRatesContext(n: string, raw: string): boolean {
   if (
-    /(usd|dollar|\$|eur|euro|gbp|pound|£|naira|ngn|₦|rate|convert|conversion|fx|forex|currency|mid|pair|cross|snapshot)/.test(
+    /(usd|dollar|dollars|\$|eur|euro|gbp|pound|£|naira|ngn|₦|rate|convert|conversion|fx|forex|currency|mid|pair|cross|snapshot)/.test(
       n,
     )
   ) {
     return true
   }
-  if (/\d/.test(raw) && /(usd|eur|gbp|ngn|naira|dollar|pound|euro)/i.test(raw)) return true
+  if (/\d/.test(raw) && /(usd|eur|gbp|ngn|naira|dollars?|pound|euro)/i.test(raw)) return true
   return false
+}
+
+type FxCode = 'NGN' | 'USD' | 'GBP' | 'EUR'
+
+function tokenToFx(tok: string): FxCode | null {
+  const s = tok.toLowerCase().trim()
+  if (/^(naira|ngn|₦)$/.test(s)) return 'NGN'
+  if (/^(usd|dollar|dollars|\$)$/.test(s)) return 'USD'
+  if (/^(gbp|pound|pounds|£)$/.test(s)) return 'GBP'
+  if (/^(eur|euro|euros|€)$/.test(s)) return 'EUR'
+  return null
+}
+
+/** Parse a quantity (million, thousand, k, or digits) from user text. */
+function extractAmount(low: string): number | null {
+  const ml = low.match(/(\d+(?:\.\d+)?)\s*million\b/)
+  if (ml) return Number(ml[1]) * 1e6
+  const bl = low.match(/(\d+(?:\.\d+)?)\s*billion\b/)
+  if (bl) return Number(bl[1]) * 1e9
+  if (/\bone million\b/.test(low)) return 1e6
+  if (/\btwo million\b/.test(low)) return 2e6
+  const k = low.match(/(\d+(?:\.\d+)?)\s*k\b(?![a-z])/)
+  if (k) return Number(k[1]) * 1e3
+  const th = low.match(/(\d+(?:\.\d+)?)\s*thousand\b/)
+  if (th) return Number(th[1]) * 1e3
+  const big = low.match(/\b(\d{1,3}(?:,\d{3})+|\d{4,})(?:\.\d+)?\b/)
+  if (big) return Number(big[1].replace(/,/g, ''))
+  const sm = low.match(/\b(\d+(?:\.\d+)?)\b/)
+  if (sm) {
+    const v = Number(sm[1])
+    if (v > 0 && Number.isFinite(v)) return v
+  }
+  return null
+}
+
+function firstIndex(low: string, re: RegExp): number {
+  const m = low.match(re)
+  return m?.index ?? 999999
+}
+
+/** Infer source/target when exactly two FX codes appear (by first occurrence). */
+function inferConversionPair(low: string): { from: FxCode; to: FxCode } | null {
+  const explicit = low.match(
+    /\bfrom\s+(\S+)\s+to\s+(\S+)/i,
+  )
+  if (explicit) {
+    const a = tokenToFx(explicit[1])
+    const b = tokenToFx(explicit[2])
+    if (a && b && a !== b) return { from: a, to: b }
+  }
+
+  const present: FxCode[] = []
+  const flags: Record<FxCode, RegExp> = {
+    NGN: /(naira|ngn|₦)/i,
+    USD: /\b(usd|dollar|dollars|\$)\b/i,
+    GBP: /\b(gbp|pound|pounds|£)\b/i,
+    EUR: /\b(eur|euro|euros|€)\b/i,
+  }
+  ;(['NGN', 'USD', 'GBP', 'EUR'] as const).forEach((c) => {
+    if (flags[c].test(low)) present.push(c)
+  })
+  const uniq = [...new Set(present)]
+  if (uniq.length !== 2) return null
+
+  const [c1, c2] = uniq
+  const i1 = firstIndex(low, flags[c1])
+  const i2 = firstIndex(low, flags[c2])
+  return i1 <= i2 ? { from: c1, to: c2 } : { from: c2, to: c1 }
+}
+
+/** Convert using same USD-base mids as the public converter. */
+function convertWithFeatured(amount: number, from: FxCode, to: FxCode, R: FeaturedRates): number | null {
+  if (from === to) return amount
+  let usd = amount
+  switch (from) {
+    case 'USD':
+      break
+    case 'NGN':
+      usd = amount / R.usdToNgn
+      break
+    case 'GBP':
+      usd = amount / R.usdToGbp
+      break
+    case 'EUR':
+      usd = amount / R.usdToEur
+      break
+    default:
+      return null
+  }
+  switch (to) {
+    case 'USD':
+      return usd
+    case 'NGN':
+      return usd * R.usdToNgn
+    case 'GBP':
+      return usd * R.usdToGbp
+    case 'EUR':
+      return usd * R.usdToEur
+    default:
+      return null
+  }
+}
+
+function labelFx(c: FxCode): string {
+  switch (c) {
+    case 'NGN':
+      return 'NGN'
+    case 'USD':
+      return 'USD'
+    case 'GBP':
+      return 'GBP'
+    case 'EUR':
+      return 'EUR'
+  }
+}
+
+/** Reply with computed conversion from published mids, or null to fall through. */
+function tryConversionAnswer(low: string, rates: FeaturedRates): BotReply | null {
+  const conversionIntent =
+    /convert|exchange|worth|what\s*(?:is|'s)|how much|how many|equals?|into\b|\bin\b(?!\s+total)|calculate/.test(low)
+  const pair = inferConversionPair(low)
+  if (!pair) return null
+
+  const amount = extractAmount(low)
+  if (amount == null || !Number.isFinite(amount) || amount <= 0) return null
+
+  const looksLikeQuote =
+    conversionIntent ||
+    /million|billion|thousand|\b\d{4,}\b|,\d{3}/.test(low) ||
+    (amount >= 1000 && /(naira|ngn|₦|usd|dollar|dollars|gbp|pound|eur|euro)/i.test(low))
+
+  if (!looksLikeQuote) return null
+
+  const out = convertWithFeatured(amount, pair.from, pair.to, rates)
+  if (out == null || !Number.isFinite(out)) return null
+
+  const digitsOut = pair.to === 'NGN' ? 2 : pair.to === 'USD' ? 2 : 4
+  const digitsIn = pair.from === 'NGN' ? 0 : pair.from === 'USD' ? 2 : 4
+
+  return r(
+    `Using the published mids on this site (same as the converter): ${formatNumber(amount, digitsIn)} ${labelFx(pair.from)} → about ${formatNumber(out, digitsOut)} ${labelFx(pair.to)}. Mid only: 1 USD = ${formatNumber(rates.usdToNgn, 4)} NGN.`,
+  )
 }
 
 export function makeBotReply(
@@ -66,7 +208,7 @@ export function makeBotReply(
   if (/\b(help|what can you|commands)\b/.test(input)) {
     return r(
       'I pull answers from this website only. You can ask about:\n' +
-        'Rates: “USD to NGN”, “pound to naira”, “euro rate”.\n' +
+        'Rates: “USD to NGN”, “what is 1 million naira in dollars”, “pound to naira”, “euro rate”.\n' +
         'This site: “refresh”, “where do rates come from”.\n' +
         'Services: PTA, BTA, payments, delivery, cashless.\n' +
         'For the full service text, open Services in the menu.',
@@ -132,12 +274,17 @@ export function makeBotReply(
     )
   }
 
-  const mentionsUsd = /\b(usd|dollar|\$)\b/.test(n)
+  const mentionsUsd = /\b(usd|dollar|dollars|\$)\b/.test(n)
   const mentionsGbp = /\b(gbp|pound|sterling|£)\b/.test(n)
   const mentionsEur = /\b(eur|euro|€)\b/.test(n)
   const mentionsNgn = /\b(ngn|naira|₦)\b/.test(n)
 
-  if ((mentionsUsd && mentionsNgn) || /\b(usd|dollar).{0,24}(ngn|naira)\b/.test(input)) {
+  if (hasRates && rates) {
+    const converted = tryConversionAnswer(input, rates)
+    if (converted) return converted
+  }
+
+  if ((mentionsUsd && mentionsNgn) || /\b(usd|dollar|dollars).{0,24}(ngn|naira)\b/.test(input)) {
     return hasRates
       ? r(`Right now about 1 USD is ${formatNumber(rates!.usdToNgn, 6)} NGN, same mid as the converter and home page.`)
       : r(

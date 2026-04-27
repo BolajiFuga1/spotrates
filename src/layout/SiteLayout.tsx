@@ -59,12 +59,12 @@ export function SiteLayout() {
       </div>
 
       <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_88%,transparent)] backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-6">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5 md:px-6 md:py-4">
           <Link to="/" className="flex min-w-0 items-center gap-3 text-left" onClick={() => setNavOpen(false)}>
             <img
               src="/elloydsfx-logo.png"
               alt="E-lloydsFX"
-              className="h-14 w-auto max-w-[min(300px,58vw)] shrink-0 object-contain object-left md:h-16 md:max-w-[min(340px,48vw)]"
+              className="h-16 w-auto max-w-[min(380px,62vw)] shrink-0 object-contain object-left md:h-[4.5rem] md:max-w-[min(420px,52vw)] lg:h-[5rem] lg:max-w-[min(460px,45vw)]"
               width={1024}
               height={1024}
             />
@@ -159,7 +159,7 @@ export function SiteLayout() {
               <img
                 src="/elloydsfx-logo.png"
                 alt="E-lloydsFX"
-                className="h-12 w-auto max-w-[240px] shrink-0 object-contain object-left md:h-14 md:max-w-[280px]"
+                className="h-14 w-auto max-w-[280px] shrink-0 object-contain object-left md:h-16 md:max-w-[320px] lg:h-[4.25rem] lg:max-w-[360px]"
                 width={1024}
                 height={1024}
               />

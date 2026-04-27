@@ -38,7 +38,7 @@ I can help you check live exchange rates, guide your transactions, or connect yo
   }
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
+    <div className="fixed bottom-5 right-5 z-[100] flex flex-col items-end gap-3">
       {open ? (
         <div
           className="flex h-[min(520px,calc(100dvh-120px))] w-[min(400px,calc(100vw-40px))] flex-col overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] shadow-[var(--shadow-lg)]"
@@ -113,9 +113,9 @@ I can help you check live exchange rates, guide your transactions, or connect yo
       ) : null}
 
       <button
-        className="rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-5 py-3 text-sm font-bold text-[var(--accent)] shadow-[var(--shadow-lg)] transition hover:brightness-110"
         type="button"
         onClick={() => setOpen((v) => !v)}
+        className="rounded-full border-2 border-[var(--border-strong)] bg-[var(--surface)] px-5 py-3 text-sm font-bold text-[var(--accent)] shadow-[0_8px_32px_rgba(15,23,42,0.28)] ring-4 ring-[var(--surface)] ring-offset-0 transition hover:bg-[var(--surface-hover)] hover:shadow-[0_12px_36px_rgba(15,23,42,0.35)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--accent)]/35"
       >
         {open ? 'Close' : 'Chat'}
       </button>
