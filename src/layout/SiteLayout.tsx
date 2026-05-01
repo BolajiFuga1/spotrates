@@ -187,7 +187,7 @@ export function SiteLayout() {
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Location</h3>
               <address className="mt-3 not-italic text-sm leading-relaxed text-[var(--text)]">
-                Suite 11, Matia Mall Orchid Road, Lekki Phase II
+                Matia Mall Orchid Road, Lekki Phase II
                 <br />
                 Lagos, Nigeria
               </address>
@@ -195,7 +195,7 @@ export function SiteLayout() {
             </div>
           </div>
           <p className="mt-10 border-t border-[var(--border)] pt-6 text-xs text-[var(--text-muted)]">
-            © {new Date().getFullYear()} e-lloydsFX. Not financial advice. Rates are indicative only.
+            © {new Date().getFullYear()} e-lloydsFX.
           </p>
         </div>
       </footer>

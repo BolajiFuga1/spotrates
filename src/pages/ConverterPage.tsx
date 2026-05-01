@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { convertThroughUsd, describeRateSource, formatNumber } from '../lib/fx'
+import { convertThroughUsd, formatNumber } from '../lib/fx'
 import type { SupportedFx } from '../lib/geoCurrency'
 import type { SiteOutletContext } from '../siteOutletContext'
 
@@ -100,18 +100,11 @@ export function ConverterPage() {
         </div>
       </div>
 
-      <p className="mt-6 text-center text-xs text-[var(--text-muted)] md:text-left">
-        {state.snapshot ? (
-          <>
-            Source: <span className="text-[var(--text)]">{describeRateSource(state.snapshot)}</span>. Indicative only, not
-            for trading execution.
-          </>
-        ) : (
-          <>
-            Rates appear after you publish from <span className="font-mono text-[var(--text)]">admin.html</span>.
-          </>
-        )}
-      </p>
+      {!state.snapshot ? (
+        <p className="mt-6 text-center text-xs text-[var(--text-muted)] md:text-left">
+          Rates appear after you publish from <span className="font-mono text-[var(--text)]">admin.html</span>.
+        </p>
+      ) : null}
     </section>
   )
 }

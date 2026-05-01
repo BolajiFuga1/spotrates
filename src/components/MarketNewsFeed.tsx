@@ -104,7 +104,7 @@ export function MarketNewsFeed() {
 
         <p className="border-t border-[var(--border)] px-4 py-3 text-[11px] leading-relaxed text-[var(--text-muted)] md:px-5">
           Each link opens the publisher&apos;s page (often via Google News) in a new tab. Headlines are fetched on the
-          server and cached briefly. Not financial advice.
+          server and cached briefly.
           {stale ? <span className="mt-1 block text-amber-600">Showing cached headlines after a fetch issue.</span> : null}
         </p>
       </div>
