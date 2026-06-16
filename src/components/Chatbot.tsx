@@ -10,7 +10,7 @@ export function Chatbot(props: { rates: FeaturedRates | null; ratesSourceLine?: 
   const [msgs, setMsgs] = useState<Msg[]>(() => [
     {
       role: 'bot',
-      text: `Hello 👋 I'm Angela, your virtual assistant.
+      text: `Hello 👋 I'm Lloyd, your virtual assistant.
 I can help you check live exchange rates, guide your transactions, or connect you with our team. How can I assist you today?`,
     },
   ])
@@ -43,11 +43,11 @@ I can help you check live exchange rates, guide your transactions, or connect yo
         <div
           className="flex h-[min(520px,calc(100dvh-120px))] w-[min(400px,calc(100vw-40px))] flex-col overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] shadow-[var(--shadow-lg)]"
           role="dialog"
-          aria-label="Angela - Virtual Assistant"
+          aria-label="Lloyd - Virtual Assistant"
         >
           <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] bg-[var(--bg-elevated)] p-4">
             <div>
-              <div className="text-sm font-bold text-[var(--text-heading)]">Angela - Virtual Assistant</div>
+              <div className="text-sm font-bold text-[var(--text-heading)]">Lloyd - Virtual Assistant</div>
             </div>
             <button
               className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-sm font-semibold text-[var(--text-heading)] transition hover:bg-[var(--surface-hover)]"
