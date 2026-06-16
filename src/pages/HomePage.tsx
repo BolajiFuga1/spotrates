@@ -2,6 +2,7 @@ import { useOutletContext } from 'react-router-dom'
 import { ServicesHighlightCards } from '../components/ServicesHighlightCards'
 import { VsNairaPanel } from '../components/VsNairaPanel'
 import type { SiteOutletContext } from '../siteOutletContext'
+import heroCheetah from '../assets/hero-cheetah.png'
 
 export function HomePage() {
   const { state, featured, refresh, countryCode } = useOutletContext<SiteOutletContext>()
@@ -9,8 +10,15 @@ export function HomePage() {
 
   return (
     <>
-      <section className="mx-auto max-w-6xl px-4 pb-10 pt-8 md:px-6 md:pt-12">
-        <div>
+      <div className="relative">
+        <img
+          src={heroCheetah}
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute right-0 top-0 z-0 hidden h-full w-auto max-w-[70%] select-none object-contain object-right-bottom md:block"
+        />
+        <section className="relative mx-auto max-w-6xl px-4 pb-10 pt-8 md:px-6 md:pt-12">
+        <div className="relative z-10">
           <h1 className="text-4xl font-bold tracking-tight text-[var(--text-heading)] md:text-5xl lg:text-6xl">
             Not just transactions,
             <br />
@@ -30,7 +38,7 @@ export function HomePage() {
           </button>
         </div>
 
-        <div className="mt-10" id="live-rates">
+        <div className="relative z-10 mt-10" id="live-rates">
           <VsNairaPanel
             featured={featured}
             loading={state.status === 'loading' || state.status === 'idle'}
@@ -38,7 +46,8 @@ export function HomePage() {
             viewerInNigeria={viewerInNigeria}
           />
         </div>
-      </section>
+        </section>
+      </div>
       <ServicesHighlightCards />
     </>
   )
