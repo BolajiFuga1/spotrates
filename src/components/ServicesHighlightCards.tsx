@@ -38,27 +38,6 @@ function IconCard(props: { className?: string }) {
   )
 }
 
-function IconDelivery(props: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={props.className} aria-hidden>
-      <path
-        d="M1 13h10v7H1v-7Z"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M11 17h2.5l3.5-4.5V9h3l2.5 2.5V17H11"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinejoin="round"
-      />
-      <circle cx="6" cy="20" r="1.75" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="17" cy="20" r="1.75" stroke="currentColor" strokeWidth="1.5" />
-    </svg>
-  )
-}
-
 const HIGHLIGHTS = [
   {
     id: 'service-forex-cash',
@@ -74,11 +53,6 @@ const HIGHLIGHTS = [
     id: 'service-fx-payments',
     title: 'Credit card payments',
     Icon: IconCard,
-  },
-  {
-    id: 'service-cash-delivery',
-    title: 'Cash delivery',
-    Icon: IconDelivery,
   },
 ] as const
 

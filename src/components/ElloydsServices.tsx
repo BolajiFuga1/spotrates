@@ -66,28 +66,11 @@ export function ElloydsServices() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <div
-          id="service-cash-delivery"
-          className="scroll-mt-28 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5"
-        >
-          <h3 className="text-sm font-bold text-[var(--text-heading)]">Deliveries</h3>
-          <p className="mt-2 text-sm leading-relaxed text-[var(--text)]">
-            e-lloydsFX provides delivery services for customers who purchase larger amounts of currency. For smaller
-            amounts, we may request a small delivery charge. Clients use this to avoid traffic gridlock.
-          </p>
-        </div>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
           <h3 className="text-sm font-bold text-[var(--text-heading)]">Bank deposits</h3>
           <p className="mt-2 text-sm leading-relaxed text-[var(--text)]">
             We help customers deposit forex bought into banks, often to pay for foreign goods or services, with funds paid
             straight to their forex accounts at a local bank so they can complete transactions faster.
-          </p>
-        </div>
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
-          <h3 className="text-sm font-bold text-[var(--text-heading)]">Multiple banks</h3>
-          <p className="mt-2 text-sm leading-relaxed text-[var(--text)]">
-            e-lloydsFX maintains accounts at all major banks in the country, making it easy for customers to transact with
-            us.
           </p>
         </div>
       </div>
