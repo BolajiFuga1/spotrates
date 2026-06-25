@@ -1,15 +1,17 @@
 import {
+  buildAdminRatesResponse,
+  buildDeskFromInputs,
+  deskToUsdBase,
+} from '../../lib/rateDesk.mjs'
+import {
   disconnectRedis,
-  fromUsdBase,
   getRedis,
   readManualStore,
-  toUsdBase,
   writeManualStore,
 } from '../lib/manualRatesStore.js'
 import { adminCookieName, parseCookies, verifySession } from '../lib/adminSession.js'
 
 const ADMIN_AUTH_ENABLED = process.env.SPOTRATES_ADMIN_AUTH === '1'
-const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || '').trim()
 
 function adminAuthorized(req) {
   if (!ADMIN_AUTH_ENABLED) return true
@@ -47,23 +49,7 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const s = await readManualStore(redis)
-      if (!s.rates?.NGN) {
-        return res.status(200).json({
-          active: s.active,
-          ngnPerUsd: '',
-          ngnPerGbp: '',
-          ngnPerEur: '',
-          updatedAtMs: s.updatedAtMs,
-        })
-      }
-      const d = fromUsdBase(s.rates)
-      return res.status(200).json({
-        active: s.active,
-        ngnPerUsd: d.ngnPerUsd,
-        ngnPerGbp: d.ngnPerGbp,
-        ngnPerEur: d.ngnPerEur,
-        updatedAtMs: s.updatedAtMs,
-      })
+      return res.status(200).json(buildAdminRatesResponse(s))
     }
 
     if (!redis) {
@@ -81,24 +67,35 @@ export default async function handler(req, res) {
       await writeManualStore(redis, {
         active: false,
         rates: prev.rates,
+        desk: prev.desk,
         updatedAtMs: Date.now(),
       })
       return res.status(200).json({ ok: true })
     }
 
-    const u = Number(body.ngnPerUsd)
-    const g = Number(body.ngnPerGbp)
-    const e = Number(body.ngnPerEur)
-    if (![u, g, e].every((n) => Number.isFinite(n) && n > 0)) {
+    const pairs = [
+      { buy: Number(body.usdBuy), sell: Number(body.usdSell) },
+      { buy: Number(body.gbpBuy), sell: Number(body.gbpSell) },
+      { buy: Number(body.eurBuy), sell: Number(body.eurSell) },
+    ]
+    if (!pairs.every((p) => Number.isFinite(p.buy) && Number.isFinite(p.sell) && p.buy > 0 && p.sell > 0)) {
       return res.status(400).json({
         ok: false,
-        error: 'Enter positive numbers: naira per US dollar, per pound, and per euro.',
+        error: 'Enter positive buy and sell rates for dollar, pound, and euro.',
       })
     }
-    const rates = toUsdBase(u, g, e)
+    if (!pairs.every((p) => p.sell > p.buy)) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Sell rate must be higher than buy rate for each currency.',
+      })
+    }
+
+    const desk = buildDeskFromInputs(pairs[0], pairs[1], pairs[2])
+    const rates = deskToUsdBase(desk)
     const updatedAtMs = Date.now()
-    await writeManualStore(redis, { active: true, rates, updatedAtMs })
-    return res.status(200).json({ ok: true, rates, updatedAtMs })
+    await writeManualStore(redis, { active: true, rates, desk, updatedAtMs })
+    return res.status(200).json({ ok: true, rates, desk, updatedAtMs })
   } finally {
     await disconnectRedis(redis)
   }

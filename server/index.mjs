@@ -2,13 +2,19 @@ import cookieParser from 'cookie-parser'
 import crypto from 'node:crypto'
 import dotenv from 'dotenv'
 import express from 'express'
-import { fetchNigeriaFxNewsItems } from '../lib/nigeriaFxNews.mjs'
+import {
+  buildAdminRatesResponse,
+  buildDeskFromInputs,
+  buildPublicRatesPayload,
+  deskToUsdBase,
+} from '../lib/rateDesk.mjs'
 import {
   getCachedNewsItems,
   getNewsCacheFetchedAt,
   isNewsCacheFresh,
   setNewsCache,
 } from '../lib/news/cache.mjs'
+import { fetchNigeriaFxNewsItems } from '../lib/nigeriaFxNews.mjs'
 import { existsSync, readFileSync } from 'node:fs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
@@ -101,10 +107,11 @@ async function readStore() {
     return {
       active: Boolean(parsed.active),
       rates: parsed.rates && typeof parsed.rates === 'object' ? parsed.rates : null,
+      desk: parsed.desk && typeof parsed.desk === 'object' ? parsed.desk : null,
       updatedAtMs: typeof parsed.updatedAtMs === 'number' ? parsed.updatedAtMs : null,
     }
   } catch {
-    return { active: false, rates: null, updatedAtMs: null }
+    return { active: false, rates: null, desk: null, updatedAtMs: null }
   }
 }
 
@@ -155,22 +162,7 @@ function requireAdmin(req, res, next) {
   next()
 }
 
-/** Stored USD-base: NGN per USD, GBP per USD, EUR per USD (same as open.er). */
-function toUsdBase(ngnPerUsd, ngnPerGbp, ngnPerEur) {
-  return {
-    NGN: ngnPerUsd,
-    GBP: ngnPerUsd / ngnPerGbp,
-    EUR: ngnPerUsd / ngnPerEur,
-  }
-}
-
-function fromUsdBase(r) {
-  return {
-    ngnPerUsd: r.NGN,
-    ngnPerGbp: r.NGN / r.GBP,
-    ngnPerEur: r.NGN / r.EUR,
-  }
-}
+/** Stored USD-base mids for the converter; desk holds buy/sell for the public board. */
 
 const app = express()
 if (process.env.RENDER === 'true' || process.env.TRUST_PROXY === '1') {
@@ -239,19 +231,7 @@ app.get('/api/public/cbn-official-usd', async (_req, res) => {
 
 app.get('/api/public/rates', async (_req, res) => {
   const s = await readStore()
-  if (!s.active || !s.rates?.NGN || !s.rates?.GBP || !s.rates?.EUR) {
-    return res.json({ active: false })
-  }
-  res.json({
-    active: true,
-    base: 'USD',
-    rates: {
-      NGN: s.rates.NGN,
-      GBP: s.rates.GBP,
-      EUR: s.rates.EUR,
-    },
-    updatedAtMs: s.updatedAtMs ?? Date.now(),
-  })
+  res.json(buildPublicRatesPayload(s))
 })
 
 app.get('/api/public/nigeria-fx-news', async (_req, res) => {
@@ -353,23 +333,7 @@ app.get('/api/admin/me', (req, res) => {
 
 app.get('/api/admin/rates', requireAdmin, async (_req, res) => {
   const s = await readStore()
-  if (!s.rates?.NGN) {
-    return res.json({
-      active: s.active,
-      ngnPerUsd: '',
-      ngnPerGbp: '',
-      ngnPerEur: '',
-      updatedAtMs: s.updatedAtMs,
-    })
-  }
-  const d = fromUsdBase(s.rates)
-  res.json({
-    active: s.active,
-    ngnPerUsd: d.ngnPerUsd,
-    ngnPerGbp: d.ngnPerGbp,
-    ngnPerEur: d.ngnPerEur,
-    updatedAtMs: s.updatedAtMs,
-  })
+  res.json(buildAdminRatesResponse(s))
 })
 
 app.put('/api/admin/rates', requireAdmin, async (req, res) => {
@@ -379,23 +343,35 @@ app.put('/api/admin/rates', requireAdmin, async (req, res) => {
     await writeStore({
       active: false,
       rates: prev.rates,
+      desk: prev.desk,
       updatedAtMs: Date.now(),
     })
     return res.json({ ok: true })
   }
-  const u = Number(body.ngnPerUsd)
-  const g = Number(body.ngnPerGbp)
-  const e = Number(body.ngnPerEur)
-  if (![u, g, e].every((n) => Number.isFinite(n) && n > 0)) {
+
+  const pairs = [
+    { buy: Number(body.usdBuy), sell: Number(body.usdSell) },
+    { buy: Number(body.gbpBuy), sell: Number(body.gbpSell) },
+    { buy: Number(body.eurBuy), sell: Number(body.eurSell) },
+  ]
+  if (!pairs.every((p) => Number.isFinite(p.buy) && Number.isFinite(p.sell) && p.buy > 0 && p.sell > 0)) {
     return res.status(400).json({
       ok: false,
-      error: 'Enter positive numbers: naira per US dollar, per pound, and per euro.',
+      error: 'Enter positive buy and sell rates for dollar, pound, and euro.',
     })
   }
-  const rates = toUsdBase(u, g, e)
+  if (!pairs.every((p) => p.sell > p.buy)) {
+    return res.status(400).json({
+      ok: false,
+      error: 'Sell rate must be higher than buy rate for each currency.',
+    })
+  }
+
+  const desk = buildDeskFromInputs(pairs[0], pairs[1], pairs[2])
+  const rates = deskToUsdBase(desk)
   const updatedAtMs = Date.now()
-  await writeStore({ active: true, rates, updatedAtMs })
-  res.json({ ok: true, rates, updatedAtMs })
+  await writeStore({ active: true, rates, desk, updatedAtMs })
+  res.json({ ok: true, rates, desk, updatedAtMs })
 })
 
 const DIST_DIR = path.join(ROOT, 'dist')

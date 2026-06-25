@@ -1,7 +1,17 @@
 import { Redis } from '@upstash/redis'
 import { createClient } from 'redis'
+import {
+  buildDeskFromInputs,
+  deriveDeskFromMid,
+  deskToUsdBase,
+  fromUsdBase,
+  resolveDesk,
+  toUsdBase,
+} from '../../lib/rateDesk.mjs'
 
 export const MANUAL_RATES_KEY = 'spotrates:manual_v1'
+
+export { buildDeskFromInputs, deriveDeskFromMid, deskToUsdBase, fromUsdBase, resolveDesk, toUsdBase }
 
 /**
  * Vercel Storage → Redis quickstart often exposes only `REDIS_URL` (TCP). This app prefers Upstash REST
@@ -56,29 +66,13 @@ export async function disconnectRedis(redis) {
   }
 }
 
-export function toUsdBase(ngnPerUsd, ngnPerGbp, ngnPerEur) {
-  return {
-    NGN: ngnPerUsd,
-    GBP: ngnPerUsd / ngnPerGbp,
-    EUR: ngnPerUsd / ngnPerEur,
-  }
-}
-
-export function fromUsdBase(r) {
-  return {
-    ngnPerUsd: r.NGN,
-    ngnPerGbp: r.NGN / r.GBP,
-    ngnPerEur: r.NGN / r.EUR,
-  }
-}
-
 /**
- * @returns {Promise<{ active: boolean, rates: Record<string, number> | null, updatedAtMs: number | null }>}
+ * @returns {Promise<{ active: boolean, rates: Record<string, number> | null, desk: object | null, updatedAtMs: number | null }>}
  */
 export async function readManualStore(redis) {
   const r = redis ?? getRedis()
   if (!r) {
-    return { active: false, rates: null, updatedAtMs: null }
+    return { active: false, rates: null, desk: null, updatedAtMs: null }
   }
   try {
     let data = await r.get(MANUAL_RATES_KEY)
@@ -90,21 +84,22 @@ export async function readManualStore(redis) {
       }
     }
     if (!data || typeof data !== 'object') {
-      return { active: false, rates: null, updatedAtMs: null }
+      return { active: false, rates: null, desk: null, updatedAtMs: null }
     }
     return {
       active: Boolean(data.active),
       rates: data.rates && typeof data.rates === 'object' ? data.rates : null,
+      desk: data.desk && typeof data.desk === 'object' ? data.desk : null,
       updatedAtMs: typeof data.updatedAtMs === 'number' ? data.updatedAtMs : null,
     }
   } catch {
-    return { active: false, rates: null, updatedAtMs: null }
+    return { active: false, rates: null, desk: null, updatedAtMs: null }
   }
 }
 
 /**
  * @param {Redis} redis
- * @param {{ active: boolean, rates: Record<string, number> | null, updatedAtMs: number }} payload
+ * @param {{ active: boolean, rates: Record<string, number> | null, desk?: object | null, updatedAtMs: number }} payload
  */
 export async function writeManualStore(redis, payload) {
   if (!redis) throw new Error('REDIS_NOT_CONFIGURED')

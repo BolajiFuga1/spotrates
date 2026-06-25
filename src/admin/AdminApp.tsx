@@ -2,9 +2,12 @@ import { type FormEvent, useCallback, useEffect, useState } from 'react'
 
 type RatesRes = {
   active: boolean
-  ngnPerUsd: number | ''
-  ngnPerGbp: number | ''
-  ngnPerEur: number | ''
+  usdBuy: number | ''
+  usdSell: number | ''
+  gbpBuy: number | ''
+  gbpSell: number | ''
+  eurBuy: number | ''
+  eurSell: number | ''
   updatedAtMs: number | null
 }
 
@@ -42,14 +45,21 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   return data as T
 }
 
+function setIfNumber(setter: (v: string) => void, value: number | '') {
+  if (value !== '') setter(String(value))
+}
+
 export function AdminApp() {
   const [booting, setBooting] = useState(true)
   const [bootError, setBootError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const [ngnUsd, setNgnUsd] = useState('')
-  const [ngnGbp, setNgnGbp] = useState('')
-  const [ngnEur, setNgnEur] = useState('')
+  const [usdBuy, setUsdBuy] = useState('')
+  const [usdSell, setUsdSell] = useState('')
+  const [gbpBuy, setGbpBuy] = useState('')
+  const [gbpSell, setGbpSell] = useState('')
+  const [eurBuy, setEurBuy] = useState('')
+  const [eurSell, setEurSell] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
   const [savedAt, setSavedAt] = useState<string | null>(null)
   const [manualActive, setManualActive] = useState(false)
@@ -57,9 +67,12 @@ export function AdminApp() {
   const loadRates = useCallback(async () => {
     const r = await api<RatesRes>('/api/admin/rates')
     setManualActive(r.active)
-    if (r.ngnPerUsd !== '') setNgnUsd(String(r.ngnPerUsd))
-    if (r.ngnPerGbp !== '') setNgnGbp(String(r.ngnPerGbp))
-    if (r.ngnPerEur !== '') setNgnEur(String(r.ngnPerEur))
+    setIfNumber(setUsdBuy, r.usdBuy)
+    setIfNumber(setUsdSell, r.usdSell)
+    setIfNumber(setGbpBuy, r.gbpBuy)
+    setIfNumber(setGbpSell, r.gbpSell)
+    setIfNumber(setEurBuy, r.eurBuy)
+    setIfNumber(setEurSell, r.eurSell)
     setSavedAt(
       r.updatedAtMs
         ? new Intl.DateTimeFormat(undefined, {
@@ -92,11 +105,17 @@ export function AdminApp() {
   async function onSave(e: FormEvent) {
     e.preventDefault()
     setFormError(null)
-    const u = Number.parseFloat(ngnUsd)
-    const g = Number.parseFloat(ngnGbp)
-    const eur = Number.parseFloat(ngnEur)
-    if (![u, g, eur].every((n) => Number.isFinite(n) && n > 0)) {
-      setFormError('Enter a valid naira amount for dollar, pound, and euro (each must be greater than zero).')
+    const pairs = [
+      { label: 'US dollar', buy: Number.parseFloat(usdBuy), sell: Number.parseFloat(usdSell) },
+      { label: 'British pound', buy: Number.parseFloat(gbpBuy), sell: Number.parseFloat(gbpSell) },
+      { label: 'Euro', buy: Number.parseFloat(eurBuy), sell: Number.parseFloat(eurSell) },
+    ]
+    if (!pairs.every((p) => Number.isFinite(p.buy) && Number.isFinite(p.sell) && p.buy > 0 && p.sell > 0)) {
+      setFormError('Enter valid buy and sell naira rates for dollar, pound, and euro (each greater than zero).')
+      return
+    }
+    if (!pairs.every((p) => p.sell > p.buy)) {
+      setFormError('Sell rate must be higher than buy rate for each currency.')
       return
     }
     setBusy(true)
@@ -105,9 +124,12 @@ export function AdminApp() {
         method: 'PUT',
         body: JSON.stringify({
           active: true,
-          ngnPerUsd: u,
-          ngnPerGbp: g,
-          ngnPerEur: eur,
+          usdBuy: pairs[0].buy,
+          usdSell: pairs[0].sell,
+          gbpBuy: pairs[1].buy,
+          gbpSell: pairs[1].sell,
+          eurBuy: pairs[2].buy,
+          eurSell: pairs[2].sell,
         }),
       })
       setManualActive(true)
@@ -162,12 +184,11 @@ export function AdminApp() {
                 Admin
               </span>
             </div>
-            <h1 className="mt-3 text-2xl font-bold text-[var(--text-heading)]">Set rates manually</h1>
+            <h1 className="mt-3 text-2xl font-bold text-[var(--text-heading)]">Set buy &amp; sell rates</h1>
             <p className="mt-2 max-w-xl text-sm text-[var(--text-muted)]">
-              Type how many <strong className="text-[var(--text)]">naira (₦)</strong> equal{' '}
-              <strong className="text-[var(--text)]">one US dollar</strong>, <strong className="text-[var(--text)]">one British pound</strong>, and{' '}
-              <strong className="text-[var(--text)]">one euro</strong>. Click <em>Save &amp; publish</em> to push them to the public
-              site. No password for now.
+              Enter <strong className="text-[var(--text)]">buy</strong> and <strong className="text-[var(--text)]">sell</strong>{' '}
+              naira rates for each currency. Visitors can toggle between them on the home page. Sell should be higher than
+              buy.
             </p>
           </div>
           <a
@@ -182,12 +203,6 @@ export function AdminApp() {
           <div className="mt-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
             <p className="font-semibold">Could not reach the API</p>
             <p className="mt-1 text-amber-200/80">{bootError}</p>
-            <p className="mt-2 text-xs text-amber-200/70">
-              Local: run <span className="font-mono">npm run dev:full</span> so Vite proxies <span className="font-mono">/api</span>.
-              Vercel: connect <strong>Redis (Upstash)</strong> under Storage and redeploy. Saving rates returns 503 until Redis is
-              linked. If you see “Unauthorized”, turn off <span className="font-mono">SPOTRATES_ADMIN_AUTH</span> or log in via
-              the API.
-            </p>
             <button
               type="button"
               className="mt-3 text-sm font-semibold text-[var(--accent)] underline"
@@ -218,30 +233,30 @@ export function AdminApp() {
           </div>
 
           <form className="mt-6 space-y-6" onSubmit={onSave}>
-            <div className="grid gap-5 md:grid-cols-1">
-              <ManualRateCard
+            <div className="grid gap-5">
+              <DeskRateCard
                 title="US Dollar"
                 code="USD ($)"
-                description="How many naira for one US dollar"
-                placeholder="e.g. 1430"
-                value={ngnUsd}
-                onChange={setNgnUsd}
+                buy={usdBuy}
+                sell={usdSell}
+                onBuyChange={setUsdBuy}
+                onSellChange={setUsdSell}
               />
-              <ManualRateCard
+              <DeskRateCard
                 title="British pound"
                 code="GBP (£)"
-                description="How many naira for one pound sterling"
-                placeholder="e.g. 1820"
-                value={ngnGbp}
-                onChange={setNgnGbp}
+                buy={gbpBuy}
+                sell={gbpSell}
+                onBuyChange={setGbpBuy}
+                onSellChange={setGbpSell}
               />
-              <ManualRateCard
+              <DeskRateCard
                 title="Euro"
                 code="EUR (€)"
-                description="How many naira for one euro"
-                placeholder="e.g. 1560"
-                value={ngnEur}
-                onChange={setNgnEur}
+                buy={eurBuy}
+                sell={eurSell}
+                onBuyChange={setEurBuy}
+                onSellChange={setEurSell}
               />
             </div>
             {formError ? <p className="text-sm text-red-500">{formError}</p> : null}
@@ -264,24 +279,18 @@ export function AdminApp() {
             </div>
           </form>
         </div>
-
-        <p className="mt-8 text-xs leading-relaxed text-[var(--text-muted)]">
-          To require a password again later, set <span className="font-mono">SPOTRATES_ADMIN_AUTH=1</span> and{' '}
-          <span className="font-mono">ADMIN_PASSWORD</span> on the API (see <span className="font-mono">.env.example</span>
-          ).
-        </p>
       </div>
     </div>
   )
 }
 
-function ManualRateCard(props: {
+function DeskRateCard(props: {
   title: string
   code: string
-  description: string
-  placeholder: string
-  value: string
-  onChange: (v: string) => void
+  buy: string
+  sell: string
+  onBuyChange: (v: string) => void
+  onSellChange: (v: string) => void
 }) {
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-4 md:p-5">
@@ -289,10 +298,18 @@ function ManualRateCard(props: {
         <h2 className="text-base font-bold text-[var(--text-heading)]">{props.title}</h2>
         <span className="font-mono text-xs font-semibold text-[var(--accent)]">{props.code}</span>
       </div>
-      <p className="mt-1 text-sm text-[var(--text-muted)]">{props.description}</p>
-      <label className="mt-4 block text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-        Rate in naira
-      </label>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <RateInput label="Buy rate (₦)" value={props.buy} onChange={props.onBuyChange} />
+        <RateInput label="Sell rate (₦)" value={props.sell} onChange={props.onSellChange} />
+      </div>
+    </div>
+  )
+}
+
+function RateInput(props: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <label className="block">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">{props.label}</span>
       <div className="mt-2 flex items-stretch overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] focus-within:border-[var(--accent-border)] focus-within:ring-2 focus-within:ring-[var(--accent)]/20">
         <span className="flex items-center border-r border-[var(--border)] bg-[var(--surface-hover)] px-3 text-sm font-semibold text-[var(--text-muted)]">
           ₦
@@ -302,12 +319,11 @@ function ManualRateCard(props: {
           inputMode="decimal"
           min={0}
           step="any"
-          placeholder={props.placeholder}
           className="min-w-0 flex-1 border-0 bg-transparent px-4 py-3 font-mono text-lg tabular-nums text-[var(--text-heading)] outline-none"
           value={props.value}
           onChange={(e) => props.onChange(e.target.value)}
         />
       </div>
-    </div>
+    </label>
   )
 }

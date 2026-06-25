@@ -22,11 +22,29 @@ export function publicRatesBaseUrl(): string | null {
   return ''
 }
 
+function parseDesk(data: unknown): FxSnapshot['desk'] | undefined {
+  if (!data || typeof data !== 'object') return undefined
+  const d = data as Record<string, { buy?: number; sell?: number; mid?: number }>
+  const pair = (code: string) => {
+    const p = d[code]
+    if (!p || typeof p.buy !== 'number' || typeof p.sell !== 'number') return null
+    if (!Number.isFinite(p.buy) || !Number.isFinite(p.sell) || p.buy <= 0 || p.sell <= 0) return null
+    const mid = typeof p.mid === 'number' && Number.isFinite(p.mid) ? p.mid : (p.buy + p.sell) / 2
+    return { buy: p.buy, sell: p.sell, mid }
+  }
+  const USD = pair('USD')
+  const GBP = pair('GBP')
+  const EUR = pair('EUR')
+  if (!USD || !GBP || !EUR) return undefined
+  return { USD, GBP, EUR }
+}
+
 function parsePublicRatesPayload(data: unknown): FxSnapshot | null {
   if (!data || typeof data !== 'object') return null
   const o = data as {
     active?: boolean
     rates?: { NGN?: number; GBP?: number; EUR?: number }
+    desk?: unknown
     updatedAtMs?: number
   }
   if (!o.active || !o.rates) return null
@@ -44,6 +62,7 @@ function parsePublicRatesPayload(data: unknown): FxSnapshot | null {
   return {
     base: 'USD',
     rates: { NGN, GBP, EUR },
+    desk: parseDesk(o.desk),
     fetchedAtMs: typeof o.updatedAtMs === 'number' ? o.updatedAtMs : Date.now(),
     provider: 'admin.manual',
   }

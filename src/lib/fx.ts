@@ -1,8 +1,21 @@
 export type FxProvider = 'admin.manual'
 
+export type DeskPair = {
+  buy: number
+  sell: number
+  mid: number
+}
+
+export type FxDesk = {
+  USD: DeskPair
+  GBP: DeskPair
+  EUR: DeskPair
+}
+
 export type FxSnapshot = {
   base: 'USD'
   rates: Record<string, number>
+  desk?: FxDesk
   fetchedAtMs: number
   provider: FxProvider
 }
@@ -33,28 +46,65 @@ export function describeRateSource(snapshot: FxSnapshot): string {
 
 export type FeaturedRates = {
   usdToNgn: number
+  usdToNgnBuy: number
+  usdToNgnSell: number
   usdToGbp: number
   usdToEur: number
   gbpToNgn: number
+  gbpToNgnBuy: number
+  gbpToNgnSell: number
   eurToNgn: number
+  eurToNgnBuy: number
+  eurToNgnSell: number
 }
 
-export function computeFeaturedRates(snapshot: FxSnapshot): FeaturedRates {
+function defaultSpread(mid: number) {
+  return Math.max(3, Math.round(mid * 0.004))
+}
+
+function deriveDeskPair(mid: number): DeskPair {
+  const spread = defaultSpread(mid)
+  return { buy: mid - spread, sell: mid + spread, mid }
+}
+
+function resolveDeskFromSnapshot(snapshot: FxSnapshot): FxDesk {
+  if (snapshot.desk) return snapshot.desk
+
   const usdToNgn = snapshot.rates.NGN
   const usdToGbp = snapshot.rates.GBP
   const usdToEur = snapshot.rates.EUR
-  if (
-    typeof usdToNgn !== 'number' ||
-    typeof usdToGbp !== 'number' ||
-    typeof usdToEur !== 'number'
-  ) {
-    throw new Error('Missing NGN, GBP, or EUR rates in provider response')
-  }
-
   const gbpToNgn = usdToNgn / usdToGbp
   const eurToNgn = usdToNgn / usdToEur
 
-  return { usdToNgn, usdToGbp, usdToEur, gbpToNgn, eurToNgn }
+  return {
+    USD: deriveDeskPair(usdToNgn),
+    GBP: deriveDeskPair(gbpToNgn),
+    EUR: deriveDeskPair(eurToNgn),
+  }
+}
+
+export function computeFeaturedRates(snapshot: FxSnapshot): FeaturedRates {
+  const usdToGbp = snapshot.rates.GBP
+  const usdToEur = snapshot.rates.EUR
+  if (typeof usdToGbp !== 'number' || typeof usdToEur !== 'number') {
+    throw new Error('Missing GBP or EUR rates in provider response')
+  }
+
+  const desk = resolveDeskFromSnapshot(snapshot)
+
+  return {
+    usdToNgn: desk.USD.mid,
+    usdToNgnBuy: desk.USD.buy,
+    usdToNgnSell: desk.USD.sell,
+    usdToGbp,
+    usdToEur,
+    gbpToNgn: desk.GBP.mid,
+    gbpToNgnBuy: desk.GBP.buy,
+    gbpToNgnSell: desk.GBP.sell,
+    eurToNgn: desk.EUR.mid,
+    eurToNgnBuy: desk.EUR.buy,
+    eurToNgnSell: desk.EUR.sell,
+  }
 }
 
 /** Convert `amount` of `from` into `to` using USD-base rates (same convention as the snapshot). */
