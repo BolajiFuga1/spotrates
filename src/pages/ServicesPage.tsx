@@ -29,8 +29,8 @@ export function ServicesPage() {
                 to: '/converter' as const,
               },
               {
-                t: 'News',
-                d: 'Headlines from trusted sources. Open a row to read the full article in a new tab.',
+                t: 'Forex & BDC news',
+                d: 'Automated Nigerian FX, CBN, and Bureau De Change headlines from trusted publishers.',
                 to: '/news' as const,
               },
             ] as const

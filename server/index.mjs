@@ -3,6 +3,12 @@ import crypto from 'node:crypto'
 import dotenv from 'dotenv'
 import express from 'express'
 import { fetchNigeriaFxNewsItems } from '../lib/nigeriaFxNews.mjs'
+import {
+  getCachedNewsItems,
+  getNewsCacheFetchedAt,
+  isNewsCacheFresh,
+  setNewsCache,
+} from '../lib/news/cache.mjs'
 import { existsSync, readFileSync } from 'node:fs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
@@ -248,39 +254,58 @@ app.get('/api/public/rates', async (_req, res) => {
   })
 })
 
-let newsCache = { at: 0, items: [] }
-const NEWS_TTL_MS = 15 * 60 * 1000
-
 app.get('/api/public/nigeria-fx-news', async (_req, res) => {
-  const fresh = Date.now() - newsCache.at < NEWS_TTL_MS && newsCache.items.length > 0
-  if (fresh) {
-    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=600')
-    return res.json({ ok: true, items: newsCache.items })
+  if (isNewsCacheFresh()) {
+    const items = getCachedNewsItems()
+    res.setHeader('Cache-Control', 'public, max-age=180, s-maxage=300')
+    return res.json({
+      ok: true,
+      items,
+      fetchedAt: getNewsCacheFetchedAt(),
+    })
   }
   try {
     const ac = new AbortController()
     const t = setTimeout(() => ac.abort(), 16_000)
     let items
     try {
-      items = await fetchNigeriaFxNewsItems({ limit: 30, signal: ac.signal })
+      items = await fetchNigeriaFxNewsItems({ limit: 40, signal: ac.signal })
     } finally {
       clearTimeout(t)
     }
-    if (!items.length && newsCache.items.length) {
-      res.setHeader('Cache-Control', 'public, max-age=120')
-      return res.json({ ok: true, items: newsCache.items, stale: true })
+
+    const cached = getCachedNewsItems()
+    if (!items.length && cached.length) {
+      res.setHeader('Cache-Control', 'public, max-age=60')
+      return res.json({
+        ok: true,
+        items: cached,
+        stale: true,
+        fetchedAt: getNewsCacheFetchedAt(),
+      })
     }
     if (!items.length) {
-      return res.status(502).json({ ok: false, error: 'No news items available' })
+      return res.status(502).json({ ok: false, error: 'No recent news items available' })
     }
-    newsCache = { at: Date.now(), items }
-    res.setHeader('Cache-Control', 'public, max-age=600, s-maxage=900')
-    res.json({ ok: true, items })
+
+    setNewsCache(items)
+    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=600')
+    res.json({
+      ok: true,
+      items,
+      fetchedAt: getNewsCacheFetchedAt(),
+    })
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Request failed'
-    if (newsCache.items.length) {
-      res.setHeader('Cache-Control', 'public, max-age=120')
-      return res.json({ ok: true, items: newsCache.items, stale: true })
+    const cached = getCachedNewsItems()
+    if (cached.length) {
+      res.setHeader('Cache-Control', 'public, max-age=60')
+      return res.json({
+        ok: true,
+        items: cached,
+        stale: true,
+        fetchedAt: getNewsCacheFetchedAt(),
+      })
     }
     res.status(502).json({ ok: false, error: msg })
   }
