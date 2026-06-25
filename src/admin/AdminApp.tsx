@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback, useEffect, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 
 type RatesRes = {
   active: boolean
@@ -45,14 +45,27 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   return data as T
 }
 
-function setIfNumber(setter: (v: string) => void, value: number | '') {
-  if (value !== '') setter(String(value))
+function rateToField(value: number | ''): string {
+  return typeof value === 'number' && Number.isFinite(value) ? String(value) : ''
+}
+
+function parseRate(value: string): number | null {
+  const n = Number.parseFloat(value)
+  return Number.isFinite(n) && n > 0 ? n : null
+}
+
+function formatMid(buy: string, sell: string): string | null {
+  const b = parseRate(buy)
+  const s = parseRate(sell)
+  if (b == null || s == null) return null
+  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format((b + s) / 2)
 }
 
 export function AdminApp() {
   const [booting, setBooting] = useState(true)
   const [bootError, setBootError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [saveOk, setSaveOk] = useState(false)
 
   const [usdBuy, setUsdBuy] = useState('')
   const [usdSell, setUsdSell] = useState('')
@@ -67,12 +80,12 @@ export function AdminApp() {
   const loadRates = useCallback(async () => {
     const r = await api<RatesRes>('/api/admin/rates')
     setManualActive(r.active)
-    setIfNumber(setUsdBuy, r.usdBuy)
-    setIfNumber(setUsdSell, r.usdSell)
-    setIfNumber(setGbpBuy, r.gbpBuy)
-    setIfNumber(setGbpSell, r.gbpSell)
-    setIfNumber(setEurBuy, r.eurBuy)
-    setIfNumber(setEurSell, r.eurSell)
+    setUsdBuy(rateToField(r.usdBuy))
+    setUsdSell(rateToField(r.usdSell))
+    setGbpBuy(rateToField(r.gbpBuy))
+    setGbpSell(rateToField(r.gbpSell))
+    setEurBuy(rateToField(r.eurBuy))
+    setEurSell(rateToField(r.eurSell))
     setSavedAt(
       r.updatedAtMs
         ? new Intl.DateTimeFormat(undefined, {
@@ -105,16 +118,17 @@ export function AdminApp() {
   async function onSave(e: FormEvent) {
     e.preventDefault()
     setFormError(null)
+    setSaveOk(false)
     const pairs = [
-      { label: 'US dollar', buy: Number.parseFloat(usdBuy), sell: Number.parseFloat(usdSell) },
-      { label: 'British pound', buy: Number.parseFloat(gbpBuy), sell: Number.parseFloat(gbpSell) },
-      { label: 'Euro', buy: Number.parseFloat(eurBuy), sell: Number.parseFloat(eurSell) },
+      { label: 'US dollar', buy: parseRate(usdBuy), sell: parseRate(usdSell) },
+      { label: 'British pound', buy: parseRate(gbpBuy), sell: parseRate(gbpSell) },
+      { label: 'Euro', buy: parseRate(eurBuy), sell: parseRate(eurSell) },
     ]
-    if (!pairs.every((p) => Number.isFinite(p.buy) && Number.isFinite(p.sell) && p.buy > 0 && p.sell > 0)) {
-      setFormError('Enter valid buy and sell naira rates for dollar, pound, and euro (each greater than zero).')
+    if (pairs.some((p) => p.buy == null || p.sell == null)) {
+      setFormError('Enter valid buy and sell naira rates for dollar, pound, and euro.')
       return
     }
-    if (!pairs.every((p) => p.sell > p.buy)) {
+    if (pairs.some((p) => p.sell! <= p.buy!)) {
       setFormError('Sell rate must be higher than buy rate for each currency.')
       return
     }
@@ -133,6 +147,7 @@ export function AdminApp() {
         }),
       })
       setManualActive(true)
+      setSaveOk(true)
       await loadRates()
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Save failed')
@@ -142,9 +157,10 @@ export function AdminApp() {
   }
 
   async function onDeactivate() {
-    if (!confirm('Turn off manual rates? The public site will use automatic sources again.')) return
+    if (!confirm('Turn off manual rates? The public site will stop showing your published desk rates.')) return
     setBusy(true)
     setFormError(null)
+    setSaveOk(false)
     try {
       await api('/api/admin/rates', {
         method: 'PUT',
@@ -169,7 +185,7 @@ export function AdminApp() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] px-4 py-10 text-[var(--text)] md:px-6">
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-3xl">
         <header className="flex flex-col gap-4 border-b border-[var(--border)] pb-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
@@ -184,25 +200,40 @@ export function AdminApp() {
                 Admin
               </span>
             </div>
-            <h1 className="mt-3 text-2xl font-bold text-[var(--text-heading)]">Set buy &amp; sell rates</h1>
-            <p className="mt-2 max-w-xl text-sm text-[var(--text-muted)]">
-              Enter <strong className="text-[var(--text)]">buy</strong> and <strong className="text-[var(--text)]">sell</strong>{' '}
-              naira rates for each currency. Visitors can toggle between them on the home page. Sell should be higher than
-              buy.
+            <h1 className="mt-3 text-2xl font-bold text-[var(--text-heading)]">Buy &amp; sell desk rates</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--text-muted)]">
+              Set how many <strong className="text-[var(--text)]">naira (₦)</strong> you pay or charge for each unit of
+              foreign currency. These values power the <strong className="text-[var(--text)]">Buy rate</strong> /{' '}
+              <strong className="text-[var(--text)]">Sell rate</strong> toggle on the public home page.
             </p>
           </div>
           <a
             href="/"
-            className="inline-flex items-center rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] px-4 py-2 text-sm font-semibold text-[var(--accent)]"
+            className="inline-flex shrink-0 items-center rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] px-4 py-2 text-sm font-semibold text-[var(--accent)]"
           >
             View site
           </a>
         </header>
 
+        <div className="mt-6 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm leading-relaxed text-[var(--text)]">
+          <p>
+            <strong className="text-[var(--text-heading)]">Buy rate</strong> — naira you pay when a customer sells FX to
+            you (lower).
+          </p>
+          <p className="mt-1">
+            <strong className="text-[var(--text-heading)]">Sell rate</strong> — naira you charge when a customer buys FX
+            from you (higher).
+          </p>
+        </div>
+
         {bootError ? (
           <div className="mt-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
             <p className="font-semibold">Could not reach the API</p>
             <p className="mt-1 text-amber-200/80">{bootError}</p>
+            <p className="mt-2 text-xs text-amber-200/70">
+              Local: run <span className="font-mono">npm run dev:full</span>. Production: ensure Redis is linked on
+              Vercel, then redeploy.
+            </p>
             <button
               type="button"
               className="mt-3 text-sm font-semibold text-[var(--accent)] underline"
@@ -218,6 +249,15 @@ export function AdminApp() {
           </div>
         ) : null}
 
+        {saveOk ? (
+          <div
+            className="mt-6 rounded-xl border border-[var(--positive)]/40 bg-[var(--positive-dim)] px-4 py-3 text-sm text-[var(--positive)]"
+            role="status"
+          >
+            Rates published. The home page buy/sell toggle now shows these values.
+          </div>
+        ) : null}
+
         <div className="mt-6 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 md:p-6">
           <div className="flex flex-wrap items-center gap-3">
             <span
@@ -227,7 +267,7 @@ export function AdminApp() {
                   : 'bg-[var(--surface-hover)] text-[var(--text-muted)]'
               }`}
             >
-              {manualActive ? 'Published on public site' : 'Automatic sources in use'}
+              {manualActive ? 'Live on website' : 'Not published yet'}
             </span>
             {savedAt ? <span className="text-xs text-[var(--text-muted)]">Last saved: {savedAt}</span> : null}
           </div>
@@ -239,6 +279,8 @@ export function AdminApp() {
                 code="USD ($)"
                 buy={usdBuy}
                 sell={usdSell}
+                buyPlaceholder="1380"
+                sellPlaceholder="1395"
                 onBuyChange={setUsdBuy}
                 onSellChange={setUsdSell}
               />
@@ -247,6 +289,8 @@ export function AdminApp() {
                 code="GBP (£)"
                 buy={gbpBuy}
                 sell={gbpSell}
+                buyPlaceholder="1830"
+                sellPlaceholder="1850"
                 onBuyChange={setGbpBuy}
                 onSellChange={setGbpSell}
               />
@@ -255,6 +299,8 @@ export function AdminApp() {
                 code="EUR (€)"
                 buy={eurBuy}
                 sell={eurSell}
+                buyPlaceholder="1575"
+                sellPlaceholder="1595"
                 onBuyChange={setEurBuy}
                 onSellChange={setEurSell}
               />
@@ -274,7 +320,7 @@ export function AdminApp() {
                 onClick={() => void onDeactivate()}
                 className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] px-6 py-3 text-sm font-semibold text-[var(--text-heading)] disabled:opacity-40"
               >
-                Stop using manual rates
+                Unpublish rates
               </button>
             </div>
           </form>
@@ -289,27 +335,56 @@ function DeskRateCard(props: {
   code: string
   buy: string
   sell: string
+  buyPlaceholder: string
+  sellPlaceholder: string
   onBuyChange: (v: string) => void
   onSellChange: (v: string) => void
 }) {
+  const mid = useMemo(() => formatMid(props.buy, props.sell), [props.buy, props.sell])
+
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-4 md:p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-base font-bold text-[var(--text-heading)]">{props.title}</h2>
         <span className="font-mono text-xs font-semibold text-[var(--accent)]">{props.code}</span>
       </div>
+      <p className="mt-1 text-xs text-[var(--text-muted)]">Naira per 1 {props.code.split(' ')[0]}</p>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <RateInput label="Buy rate (₦)" value={props.buy} onChange={props.onBuyChange} />
-        <RateInput label="Sell rate (₦)" value={props.sell} onChange={props.onSellChange} />
+        <RateInput
+          label="Buy rate"
+          hint="You pay customer"
+          placeholder={props.buyPlaceholder}
+          value={props.buy}
+          onChange={props.onBuyChange}
+        />
+        <RateInput
+          label="Sell rate"
+          hint="Customer pays you"
+          placeholder={props.sellPlaceholder}
+          value={props.sell}
+          onChange={props.onSellChange}
+        />
       </div>
+      {mid ? (
+        <p className="mt-3 text-xs text-[var(--text-muted)]">
+          Mid (converter): <span className="font-mono font-semibold text-[var(--text-heading)]">₦{mid}</span>
+        </p>
+      ) : null}
     </div>
   )
 }
 
-function RateInput(props: { label: string; value: string; onChange: (v: string) => void }) {
+function RateInput(props: {
+  label: string
+  hint: string
+  placeholder: string
+  value: string
+  onChange: (v: string) => void
+}) {
   return (
     <label className="block">
       <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">{props.label}</span>
+      <span className="mt-0.5 block text-[10px] text-[var(--text-muted)]">{props.hint}</span>
       <div className="mt-2 flex items-stretch overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] focus-within:border-[var(--accent-border)] focus-within:ring-2 focus-within:ring-[var(--accent)]/20">
         <span className="flex items-center border-r border-[var(--border)] bg-[var(--surface-hover)] px-3 text-sm font-semibold text-[var(--text-muted)]">
           ₦
@@ -319,7 +394,8 @@ function RateInput(props: { label: string; value: string; onChange: (v: string) 
           inputMode="decimal"
           min={0}
           step="any"
-          className="min-w-0 flex-1 border-0 bg-transparent px-4 py-3 font-mono text-lg tabular-nums text-[var(--text-heading)] outline-none"
+          placeholder={props.placeholder}
+          className="min-w-0 flex-1 border-0 bg-transparent px-4 py-3 font-mono text-lg tabular-nums text-[var(--text-heading)] outline-none placeholder:text-[var(--text-muted)]/50"
           value={props.value}
           onChange={(e) => props.onChange(e.target.value)}
         />

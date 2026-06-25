@@ -4,9 +4,8 @@ import dotenv from 'dotenv'
 import express from 'express'
 import {
   buildAdminRatesResponse,
-  buildDeskFromInputs,
   buildPublicRatesPayload,
-  deskToUsdBase,
+  parseAdminSaveBody,
 } from '../lib/rateDesk.mjs'
 import {
   getCachedNewsItems,
@@ -349,29 +348,14 @@ app.put('/api/admin/rates', requireAdmin, async (req, res) => {
     return res.json({ ok: true })
   }
 
-  const pairs = [
-    { buy: Number(body.usdBuy), sell: Number(body.usdSell) },
-    { buy: Number(body.gbpBuy), sell: Number(body.gbpSell) },
-    { buy: Number(body.eurBuy), sell: Number(body.eurSell) },
-  ]
-  if (!pairs.every((p) => Number.isFinite(p.buy) && Number.isFinite(p.sell) && p.buy > 0 && p.sell > 0)) {
-    return res.status(400).json({
-      ok: false,
-      error: 'Enter positive buy and sell rates for dollar, pound, and euro.',
-    })
-  }
-  if (!pairs.every((p) => p.sell > p.buy)) {
-    return res.status(400).json({
-      ok: false,
-      error: 'Sell rate must be higher than buy rate for each currency.',
-    })
+  const parsed = parseAdminSaveBody(body)
+  if (!parsed.ok) {
+    return res.status(400).json({ ok: false, error: parsed.error })
   }
 
-  const desk = buildDeskFromInputs(pairs[0], pairs[1], pairs[2])
-  const rates = deskToUsdBase(desk)
   const updatedAtMs = Date.now()
-  await writeStore({ active: true, rates, desk, updatedAtMs })
-  res.json({ ok: true, rates, desk, updatedAtMs })
+  await writeStore({ active: true, rates: parsed.rates, desk: parsed.desk, updatedAtMs })
+  res.json({ ok: true, rates: parsed.rates, desk: parsed.desk, updatedAtMs })
 })
 
 const DIST_DIR = path.join(ROOT, 'dist')
