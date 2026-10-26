@@ -2,7 +2,7 @@ import { formatNumber, type FeaturedRates } from './fx'
 
 /** WhatsApp deep link: opens app on mobile, WhatsApp Web / desktop client where supported. */
 export const WHATSAPP_SPECIALIST_HREF =
-  'https://wa.me/2348094705599?text=' + encodeURIComponent('Hello e-lloydsFX, I have a question.')
+  'https://wa.me/2349044973971?text=' + encodeURIComponent('Hello e-lloydsFX, I have a question.')
 
 export type BotReply = {
   text: string
